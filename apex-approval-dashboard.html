@@ -8,6 +8,31 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; font-size: 13px; background: #fff; color: #333; }
 
+        /* Password gate */
+        .auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+        .auth-overlay.hidden { display: none; }
+        .auth-box {
+            text-align: center; padding: 40px; border: 1px solid #ddd; border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1); max-width: 360px; width: 100%;
+        }
+        .auth-box .auth-logo { background-color: #ff9900; color: white; font-weight: bold; font-size: 14px; padding: 8px 20px; border-radius: 20px; display: inline-block; margin-bottom: 16px; }
+        .auth-box h2 { font-size: 16px; margin-bottom: 4px; color: #111; }
+        .auth-box p { font-size: 12px; color: #666; margin-bottom: 16px; }
+        .auth-box input {
+            width: 100%; padding: 10px 12px; border: 1px solid #aab7b8; border-radius: 4px;
+            font-size: 13px; margin-bottom: 12px;
+        }
+        .auth-box input:focus { border-color: #ff9900; outline: none; box-shadow: 0 0 0 2px rgba(255,153,0,0.15); }
+        .auth-box .auth-btn {
+            width: 100%; padding: 10px; background: #ff6600; color: white; border: none;
+            border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer;
+        }
+        .auth-box .auth-btn:hover { background: #e55b00; }
+        .auth-error { color: #d32f2f; font-size: 12px; margin-bottom: 10px; display: none; }
+
         .header {
             background-color: #232f3e; color: white; padding: 0 20px;
             display: flex; justify-content: space-between; align-items: center; height: 52px;
@@ -104,6 +129,35 @@
     </style>
 </head>
 <body>
+    <!-- Password Gate -->
+    <div class="auth-overlay" id="auth-overlay">
+        <div class="auth-box">
+            <div class="auth-logo">Apex Scheduling</div>
+            <h2>Apex Approvals</h2>
+            <p>This page is restricted to Apex facility staff.</p>
+            <div class="auth-error" id="auth-error">Incorrect password. Try again.</div>
+            <input type="password" id="auth-password" placeholder="Enter access code" onkeydown="if(event.key==='Enter')checkAuth()">
+            <button class="auth-btn" onclick="checkAuth()">Enter</button>
+        </div>
+    </div>
+
+    <script>
+        const APEX_ACCESS_CODE = 'apex2026';
+        function checkAuth() {
+            const input = document.getElementById('auth-password').value;
+            if (input === APEX_ACCESS_CODE) {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                sessionStorage.setItem('apex-auth', 'true');
+            } else {
+                document.getElementById('auth-error').style.display = 'block';
+                document.getElementById('auth-password').value = '';
+            }
+        }
+        // Skip prompt if already authenticated this session
+        if (sessionStorage.getItem('apex-auth') === 'true') {
+            document.getElementById('auth-overlay').classList.add('hidden');
+        }
+    </script>
     <div class="header">
         <div class="header-left">
             <div class="logo">Apex Scheduling</div>
