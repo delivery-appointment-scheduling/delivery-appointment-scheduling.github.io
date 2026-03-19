@@ -131,14 +131,17 @@
                     <div class="form-group">
                         <label>Container Available for Pickup <span class="req">*</span></label>
                         <input type="date" id="availableDate" required>
+                        <div id="availableDate-info" class="info-note"></div>
                     </div>
                     <div class="form-group">
                         <label>Port Appointment Date</label>
                         <input type="date" id="portApptDate">
+                        <div id="portApptDate-info" class="info-note"></div>
                     </div>
                     <div class="form-group">
                         <label>Last Free Date <span class="req">*</span></label>
                         <input type="date" id="lastFreeDate" required>
+                        <div id="lastFreeDate-info" class="info-note"></div>
                     </div>
                 </div>
             </div>
@@ -235,6 +238,63 @@
             document.getElementById('carrierName').value = scacMap[this.value] || '';
         });
 
+        // Set min date to today on all date inputs
+        function getTodayStr() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
+        function setMinDates() {
+            const today = getTodayStr();
+            ['availableDate','portApptDate','lastFreeDate','requestedDate'].forEach(id => {
+                document.getElementById(id).setAttribute('min', today);
+            });
+        }
+        setMinDates();
+
+        // Live past-date validation on each date field
+        function checkPastDate(inputId) {
+            const val = document.getElementById(inputId).value;
+            const infoEl = document.getElementById(inputId + '-info');
+            if (!infoEl) return;
+            infoEl.textContent = '';
+            infoEl.style.color = '';
+            if (!val) return;
+            if (val < getTodayStr()) {
+                infoEl.style.color = '#d32f2f';
+                infoEl.textContent = '❌ This date is in the past. Please select today or a future date.';
+            }
+        }
+        ['availableDate','portApptDate','lastFreeDate'].forEach(id => {
+            document.getElementById(id).addEventListener('change', function() { checkPastDate(id); });
+        });
+
+        // Last Free Date vs Available Date — warn if more than 5 days apart
+        function validateLastFreeDate() {
+            const infoEl = document.getElementById('lastFreeDate-info');
+            const avail = document.getElementById('availableDate').value;
+            const lfd = document.getElementById('lastFreeDate').value;
+            // Don't overwrite a past-date error
+            if (lfd && lfd < getTodayStr()) return;
+            if (infoEl.textContent && !infoEl.textContent.includes('days')) infoEl.textContent = '';
+            if (!avail || !lfd) { if (infoEl.textContent.includes('days')) infoEl.textContent = ''; return; }
+            const availMs = new Date(avail + 'T00:00:00').getTime();
+            const lfdMs = new Date(lfd + 'T00:00:00').getTime();
+            const diffDays = Math.round((lfdMs - availMs) / (1000 * 60 * 60 * 24));
+            if (diffDays > 5) {
+                infoEl.style.color = '#e65100';
+                infoEl.textContent = '⚠️ Last Free Date is ' + diffDays + ' days after Container Available for Pickup. Typically should not exceed 5 days.';
+            } else if (diffDays < 0) {
+                infoEl.style.color = '#d32f2f';
+                infoEl.textContent = '❌ Last Free Date is before Container Available for Pickup.';
+            } else {
+                infoEl.style.color = '#067d62';
+                infoEl.textContent = '✅ ' + diffDays + ' day(s) after pickup availability.';
+            }
+        }
+        document.getElementById('lastFreeDate').addEventListener('change', validateLastFreeDate);
+        document.getElementById('availableDate').addEventListener('change', validateLastFreeDate);
+        // requestedDate already has a change listener — we'll add past check there too
+
         // Get the facility's hours for the currently selected date
         function getSelectedDayHours() {
             const facility = document.getElementById('facility').value;
@@ -324,6 +384,12 @@
             updateTimeConstraints();
             setEndTimeFromStart();
             validateDeliveryDate();
+            // Past date check for requested delivery date
+            const infoEl = document.getElementById('delivery-date-info');
+            if (this.value && this.value < getTodayStr()) {
+                infoEl.style.color = '#d32f2f';
+                infoEl.textContent = '❌ Requested delivery date is in the past. Please select today or a future date.';
+            }
         });
         document.getElementById('facility').addEventListener('change', function() {
             updateTimeConstraints();
@@ -376,6 +442,22 @@
                 errBanner.textContent = '❌ Please fill in all required fields.';
                 errBanner.classList.add('visible');
                 return;
+            }
+
+            // Block past dates
+            const today = getTodayStr();
+            const pastDateFields = [
+                { val: availableDate, label: 'Container Available for Pickup' },
+                { val: portApptDate, label: 'Port Appointment Date' },
+                { val: lastFreeDate, label: 'Last Free Date' },
+                { val: requestedDate, label: 'Requested Delivery Date' }
+            ];
+            for (const f of pastDateFields) {
+                if (f.val && f.val < today) {
+                    errBanner.textContent = '❌ ' + f.label + ' is in the past. All dates must be today or later.';
+                    errBanner.classList.add('visible');
+                    return;
+                }
             }
 
             if (portApptDate && requestedDate < portApptDate) {
