@@ -18,7 +18,6 @@
         .nav a:hover { background-color: #37475a; }
         .nav a.active { border-bottom: 3px solid #ff9900; }
         .header-right { color: white; font-size: 12px; display: flex; align-items: center; gap: 8px; }
-        .user-icon { width: 28px; height: 28px; background: #37475a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
 
         .main { padding: 24px 32px; }
         .page-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; color: #111; }
@@ -39,9 +38,26 @@
         .stat-alt { border-left: 4px solid #0073bb; }
         .stat-alt .num { color: #0073bb; }
 
-        .search-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
-        .search-row input { flex: 1; padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; }
-        .search-row select { padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; }
+        .tab-bar { display: flex; gap: 0; margin-bottom: 16px; }
+        .tab-btn {
+            padding: 8px 18px; border: 1px solid #ccc; cursor: pointer;
+            font-size: 12px; font-weight: bold; background-color: white; color: #333;
+        }
+        .tab-btn:first-child { border-radius: 4px 0 0 4px; }
+        .tab-btn:last-child { border-radius: 0 4px 4px 0; }
+        .tab-btn.active { background-color: #ff6600; color: white; border-color: #ff6600; }
+        .tab-btn .badge {
+            background: #888; color: white; font-size: 10px; padding: 1px 6px;
+            border-radius: 10px; margin-left: 6px;
+        }
+        .tab-btn.active .badge { background: white; color: #ff6600; }
+
+        .controls-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+        .controls-row input { flex: 1; padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; }
+        .controls-row select { padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         .table-wrapper { border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -80,8 +96,7 @@
             </nav>
         </div>
         <div class="header-right">
-            <div class="user-icon">👤</div>
-            <span>hsubrian@</span>
+            <span>For any issues or questions contact <a href="mailto:hsubrian@amazon.com" style="color:#ff9900; text-decoration:none;">hsubrian@amazon.com</a></span>
         </div>
     </div>
 
@@ -96,7 +111,14 @@
             <div class="stat-card stat-alt"><div class="num" id="count-alt">0</div><div class="label">Alternative Proposed</div></div>
         </div>
 
-        <div class="search-row">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div class="tab-bar" style="margin-bottom:0;">
+                <button class="tab-btn active" onclick="switchTab('active')">Active Appointments <span class="badge" id="active-badge">0</span></button>
+                <button class="tab-btn" onclick="switchTab('past')">Past Appointments <span class="badge" id="past-badge">0</span></button>
+            </div>
+        </div>
+
+        <div class="controls-row">
             <input type="text" id="searchInput" placeholder="Search by container number, carrier, or appointment ID...">
             <select id="facilityFilter">
                 <option value="">All Facilities</option>
@@ -113,39 +135,77 @@
             </select>
         </div>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Appt ID</th>
-                        <th>Facility</th>
-                        <th>Container Number</th>
-                        <th>Carrier SCAC</th>
-                        <th>Carrier Name</th>
-                        <th>Available for Pickup</th>
-                        <th>Last Free Date</th>
-                        <th>Requested Date</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Status</th>
-                        <th>Apex Response</th>
-                        <th>Submitted</th>
-                    </tr>
-                </thead>
-                <tbody id="appt-tbody"></tbody>
-            </table>
+        <!-- ACTIVE TAB -->
+        <div id="tab-active" class="tab-content active">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Appt ID</th>
+                            <th>Facility</th>
+                            <th>Container Number</th>
+                            <th>Carrier SCAC</th>
+                            <th>Carrier Name</th>
+                            <th>Available for Pickup</th>
+                            <th>Last Free Date</th>
+                            <th>Requested Date</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Apex Response</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody id="active-tbody"></tbody>
+                </table>
+            </div>
+            <div id="active-empty" class="empty-state" style="display:none;">
+                <div class="icon">📋</div>
+                <p>No active appointments.</p>
+                <p><a href="apex-appointments.html">Schedule a new appointment →</a></p>
+            </div>
         </div>
 
-        <div id="empty-state" class="empty-state" style="display:none;">
-            <div class="icon">📋</div>
-            <p>No appointments yet.</p>
-            <p><a href="apex-appointments.html">Schedule your first appointment →</a></p>
+        <!-- PAST TAB -->
+        <div id="tab-past" class="tab-content">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Appt ID</th>
+                            <th>Facility</th>
+                            <th>Container Number</th>
+                            <th>Carrier SCAC</th>
+                            <th>Carrier Name</th>
+                            <th>Available for Pickup</th>
+                            <th>Last Free Date</th>
+                            <th>Requested Date</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Apex Response</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody id="past-tbody"></tbody>
+                </table>
+            </div>
+            <div id="past-empty" class="empty-state" style="display:none;">
+                <div class="icon">📁</div>
+                <p>No past appointments.</p>
+            </div>
         </div>
     </div>
 
     <script src="apex-config.js"></script>
     <script>
         let allAppts = [];
+        let currentTab = 'active';
+
+        function getTodayStr() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
 
         function formatDate(iso) {
             if (!iso) return '';
@@ -154,12 +214,73 @@
                    d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         }
 
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if (tab === 'active') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            }
+            document.getElementById('tab-' + tab).classList.add('active');
+            renderTable();
+        }
+
+        function buildRow(a) {
+            const statusClass = a.status === 'Alternative Proposed' ? 'Alternative' : a.status;
+            let apexResponse = '';
+            if (a.status === 'Confirmed') {
+                apexResponse = a.apexComments ? '✅ ' + a.apexComments : '✅ Approved';
+            } else if (a.status === 'Rejected') {
+                apexResponse = a.apexComments ? '❌ ' + a.apexComments : '❌ Rejected';
+            } else if (a.status === 'Alternative Proposed') {
+                apexResponse = '<span class="alt-date">📅 ' + (a.apexAlternativeDate || '') + ' ' +
+                    (a.altStartTime || '') + '-' + (a.altEndTime || '') + '</span>';
+                if (a.apexComments) apexResponse += '<br>' + a.apexComments;
+            }
+            const row = document.createElement('tr');
+            row.innerHTML =
+                '<td>' + a.id + '</td>' +
+                '<td>' + (a.facility || '') + '</td>' +
+                '<td>' + a.containerNumber + '</td>' +
+                '<td>' + a.carrierScac + '</td>' +
+                '<td>' + a.carrierName + '</td>' +
+                '<td>' + a.availableDate + '</td>' +
+                '<td>' + a.lastFreeDate + '</td>' +
+                '<td>' + a.requestedDate + '</td>' +
+                '<td>' + a.startTime + '</td>' +
+                '<td>' + a.endTime + '</td>' +
+                '<td><span class="status-badge status-' + statusClass + '">' + a.status + '</span></td>' +
+                '<td class="apex-response">' + apexResponse + '</td>' +
+                '<td>' + formatDate(a.submittedAt) + '</td>';
+            return row;
+        }
+
         function renderTable() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value;
             const facilityFilter = document.getElementById('facilityFilter').value;
+            const today = getTodayStr();
 
-            const filtered = allAppts.filter(a => {
+            // Split into active (requested date >= today) and past (requested date < today)
+            const activeAppts = allAppts.filter(a => a.requestedDate >= today);
+            const pastAppts = allAppts.filter(a => a.requestedDate < today);
+
+            // Update stat cards (based on active only)
+            document.getElementById('count-pending').textContent = activeAppts.filter(a => a.status === 'Pending').length;
+            document.getElementById('count-confirmed').textContent = activeAppts.filter(a => a.status === 'Confirmed').length;
+            document.getElementById('count-rejected').textContent = activeAppts.filter(a => a.status === 'Rejected').length;
+            document.getElementById('count-alt').textContent = activeAppts.filter(a => a.status === 'Alternative Proposed').length;
+
+            // Update badges
+            document.getElementById('active-badge').textContent = activeAppts.length;
+            document.getElementById('past-badge').textContent = pastAppts.length;
+
+            // Pick which list to render based on current tab
+            const source = currentTab === 'active' ? activeAppts : pastAppts;
+
+            const filtered = source.filter(a => {
                 const matchSearch = !search ||
                     a.containerNumber.toLowerCase().includes(search) ||
                     a.carrierScac.toLowerCase().includes(search) ||
@@ -171,56 +292,38 @@
                 return matchSearch && matchStatus && matchFacility;
             });
 
-            document.getElementById('count-pending').textContent = allAppts.filter(a => a.status === 'Pending').length;
-            document.getElementById('count-confirmed').textContent = allAppts.filter(a => a.status === 'Confirmed').length;
-            document.getElementById('count-rejected').textContent = allAppts.filter(a => a.status === 'Rejected').length;
-            document.getElementById('count-alt').textContent = allAppts.filter(a => a.status === 'Alternative Proposed').length;
+            // Render active tab
+            const aTbody = document.getElementById('active-tbody');
+            const aEmpty = document.getElementById('active-empty');
+            const aWrapper = document.querySelector('#tab-active .table-wrapper');
+            // Render past tab
+            const pTbody = document.getElementById('past-tbody');
+            const pEmpty = document.getElementById('past-empty');
+            const pWrapper = document.querySelector('#tab-past .table-wrapper');
 
-            const tbody = document.getElementById('appt-tbody');
-            const empty = document.getElementById('empty-state');
-            const wrapper = document.querySelector('.table-wrapper');
-
-            if (allAppts.length === 0) {
-                empty.style.display = 'block';
-                wrapper.style.display = 'none';
-                return;
-            }
-            empty.style.display = 'none';
-            wrapper.style.display = '';
-
-            tbody.innerHTML = '';
-            filtered.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-
-            filtered.forEach(a => {
-                const statusClass = a.status === 'Alternative Proposed' ? 'Alternative' : a.status;
-                let apexResponse = '';
-                if (a.status === 'Confirmed') {
-                    apexResponse = a.apexComments ? '✅ ' + a.apexComments : '✅ Approved';
-                } else if (a.status === 'Rejected') {
-                    apexResponse = a.apexComments ? '❌ ' + a.apexComments : '❌ Rejected';
-                } else if (a.status === 'Alternative Proposed') {
-                    apexResponse = '<span class="alt-date">📅 ' + (a.apexAlternativeDate || '') + ' ' +
-                        (a.altStartTime || '') + '-' + (a.altEndTime || '') + '</span>';
-                    if (a.apexComments) apexResponse += '<br>' + a.apexComments;
+            if (currentTab === 'active') {
+                aTbody.innerHTML = '';
+                if (filtered.length === 0) {
+                    aEmpty.style.display = 'block';
+                    aWrapper.style.display = 'none';
+                } else {
+                    aEmpty.style.display = 'none';
+                    aWrapper.style.display = '';
+                    filtered.sort((a, b) => new Date(a.requestedDate) - new Date(b.requestedDate));
+                    filtered.forEach(a => aTbody.appendChild(buildRow(a)));
                 }
-
-                const row = document.createElement('tr');
-                row.innerHTML =
-                    '<td>' + a.id + '</td>' +
-                    '<td>' + (a.facility || '') + '</td>' +
-                    '<td>' + a.containerNumber + '</td>' +
-                    '<td>' + a.carrierScac + '</td>' +
-                    '<td>' + a.carrierName + '</td>' +
-                    '<td>' + a.availableDate + '</td>' +
-                    '<td>' + a.lastFreeDate + '</td>' +
-                    '<td>' + a.requestedDate + '</td>' +
-                    '<td>' + a.startTime + '</td>' +
-                    '<td>' + a.endTime + '</td>' +
-                    '<td><span class="status-badge status-' + statusClass + '">' + a.status + '</span></td>' +
-                    '<td class="apex-response">' + apexResponse + '</td>' +
-                    '<td>' + formatDate(a.submittedAt) + '</td>';
-                tbody.appendChild(row);
-            });
+            } else {
+                pTbody.innerHTML = '';
+                if (filtered.length === 0) {
+                    pEmpty.style.display = 'block';
+                    pWrapper.style.display = 'none';
+                } else {
+                    pEmpty.style.display = 'none';
+                    pWrapper.style.display = '';
+                    filtered.sort((a, b) => new Date(b.requestedDate) - new Date(a.requestedDate));
+                    filtered.forEach(a => pTbody.appendChild(buildRow(a)));
+                }
+            }
         }
 
         async function loadData() {
