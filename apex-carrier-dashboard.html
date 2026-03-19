@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments - Apex Scheduling</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 13px; background: #fff; color: #333; }
+
+        .header {
+            background-color: #232f3e; color: white; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center; height: 52px;
+        }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .logo { background-color: #ff9900; color: white; font-weight: bold; font-size: 13px; padding: 6px 16px; border-radius: 20px; }
+        .nav a { color: white; text-decoration: none; font-size: 12px; padding: 14px 12px; }
+        .nav a:hover { background-color: #37475a; }
+        .nav a.active { border-bottom: 3px solid #ff9900; }
+        .header-right { color: white; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+        .user-icon { width: 28px; height: 28px; background: #37475a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+        .main { padding: 24px 32px; }
+        .page-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; color: #111; }
+        .page-subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }
+
+        .stats-row { display: flex; gap: 16px; margin-bottom: 20px; }
+        .stat-card {
+            padding: 14px 20px; border-radius: 6px; border: 1px solid #ddd; flex: 1; text-align: center;
+        }
+        .stat-card .num { font-size: 24px; font-weight: bold; }
+        .stat-card .label { font-size: 11px; color: #666; margin-top: 2px; }
+        .stat-pending { border-left: 4px solid #ff9900; }
+        .stat-pending .num { color: #ff9900; }
+        .stat-confirmed { border-left: 4px solid #067d62; }
+        .stat-confirmed .num { color: #067d62; }
+        .stat-rejected { border-left: 4px solid #d32f2f; }
+        .stat-rejected .num { color: #d32f2f; }
+        .stat-alt { border-left: 4px solid #0073bb; }
+        .stat-alt .num { color: #0073bb; }
+
+        .search-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+        .search-row input { flex: 1; padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; }
+        .search-row select { padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; }
+
+        .table-wrapper { border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th {
+            background-color: #fafafa; padding: 10px 10px; text-align: left;
+            border-bottom: 2px solid #ddd; font-weight: bold; white-space: nowrap; color: #333; font-size: 11px;
+        }
+        td { padding: 10px 10px; border-bottom: 1px solid #eee; white-space: nowrap; color: #333; }
+        tr:hover { background-color: #f5f5f5; }
+
+        .status-badge {
+            padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block;
+        }
+        .status-Pending { background: #fff3cd; color: #856404; }
+        .status-Confirmed { background: #e8f5e8; color: #067d62; }
+        .status-Rejected { background: #fce4e4; color: #d32f2f; }
+        .status-Alternative { background: #e3f2fd; color: #0073bb; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+        .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+        .empty-state p { font-size: 14px; }
+        .empty-state a { color: #ff6600; text-decoration: none; font-weight: bold; }
+
+        .apex-response { font-size: 11px; color: #555; }
+        .apex-response .alt-date { color: #0073bb; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">Apex Scheduling</div>
+            <nav class="nav">
+                <a href="apex-appointments.html">Schedule Appointment</a>
+                <a href="apex-carrier-dashboard.html" class="active">My Appointments</a>
+                <a href="apex-approval-dashboard.html">Apex Approvals</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="user-icon">👤</div>
+            <span>hsubrian@</span>
+        </div>
+    </div>
+
+    <div class="main">
+        <h1 class="page-title">My Appointments</h1>
+        <p class="page-subtitle">View all your submitted delivery appointment requests and their approval status.</p>
+
+        <div class="stats-row">
+            <div class="stat-card stat-pending"><div class="num" id="count-pending">0</div><div class="label">Pending</div></div>
+            <div class="stat-card stat-confirmed"><div class="num" id="count-confirmed">0</div><div class="label">Confirmed</div></div>
+            <div class="stat-card stat-rejected"><div class="num" id="count-rejected">0</div><div class="label">Rejected</div></div>
+            <div class="stat-card stat-alt"><div class="num" id="count-alt">0</div><div class="label">Alternative Proposed</div></div>
+        </div>
+
+        <div class="search-row">
+            <input type="text" id="searchInput" placeholder="Search by container number, carrier, or appointment ID...">
+            <select id="facilityFilter">
+                <option value="">All Facilities</option>
+                <option value="APEX LGB">APEX LGB</option>
+                <option value="APEX Bensenville">APEX Bensenville</option>
+                <option value="APEX DFW">APEX DFW</option>
+            </select>
+            <select id="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Alternative">Alternative Proposed</option>
+            </select>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Appt ID</th>
+                        <th>Facility</th>
+                        <th>Container Number</th>
+                        <th>Carrier SCAC</th>
+                        <th>Carrier Name</th>
+                        <th>Available for Pickup</th>
+                        <th>Last Free Date</th>
+                        <th>Requested Date</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Status</th>
+                        <th>Apex Response</th>
+                        <th>Submitted</th>
+                    </tr>
+                </thead>
+                <tbody id="appt-tbody"></tbody>
+            </table>
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display:none;">
+            <div class="icon">📋</div>
+            <p>No appointments yet.</p>
+            <p><a href="apex-appointments.html">Schedule your first appointment →</a></p>
+        </div>
+    </div>
+
+    <script src="apex-config.js"></script>
+    <script>
+        let allAppts = [];
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' +
+                   d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const facilityFilter = document.getElementById('facilityFilter').value;
+
+            const filtered = allAppts.filter(a => {
+                const matchSearch = !search ||
+                    a.containerNumber.toLowerCase().includes(search) ||
+                    a.carrierScac.toLowerCase().includes(search) ||
+                    a.carrierName.toLowerCase().includes(search) ||
+                    a.id.toLowerCase().includes(search);
+                const matchStatus = !statusFilter ||
+                    (statusFilter === 'Alternative' ? a.status === 'Alternative Proposed' : a.status === statusFilter);
+                const matchFacility = !facilityFilter || a.facility === facilityFilter;
+                return matchSearch && matchStatus && matchFacility;
+            });
+
+            document.getElementById('count-pending').textContent = allAppts.filter(a => a.status === 'Pending').length;
+            document.getElementById('count-confirmed').textContent = allAppts.filter(a => a.status === 'Confirmed').length;
+            document.getElementById('count-rejected').textContent = allAppts.filter(a => a.status === 'Rejected').length;
+            document.getElementById('count-alt').textContent = allAppts.filter(a => a.status === 'Alternative Proposed').length;
+
+            const tbody = document.getElementById('appt-tbody');
+            const empty = document.getElementById('empty-state');
+            const wrapper = document.querySelector('.table-wrapper');
+
+            if (allAppts.length === 0) {
+                empty.style.display = 'block';
+                wrapper.style.display = 'none';
+                return;
+            }
+            empty.style.display = 'none';
+            wrapper.style.display = '';
+
+            tbody.innerHTML = '';
+            filtered.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+            filtered.forEach(a => {
+                const statusClass = a.status === 'Alternative Proposed' ? 'Alternative' : a.status;
+                let apexResponse = '';
+                if (a.status === 'Confirmed') {
+                    apexResponse = a.apexComments ? '✅ ' + a.apexComments : '✅ Approved';
+                } else if (a.status === 'Rejected') {
+                    apexResponse = a.apexComments ? '❌ ' + a.apexComments : '❌ Rejected';
+                } else if (a.status === 'Alternative Proposed') {
+                    apexResponse = '<span class="alt-date">📅 ' + (a.apexAlternativeDate || '') + ' ' +
+                        (a.altStartTime || '') + '-' + (a.altEndTime || '') + '</span>';
+                    if (a.apexComments) apexResponse += '<br>' + a.apexComments;
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML =
+                    '<td>' + a.id + '</td>' +
+                    '<td>' + (a.facility || '') + '</td>' +
+                    '<td>' + a.containerNumber + '</td>' +
+                    '<td>' + a.carrierScac + '</td>' +
+                    '<td>' + a.carrierName + '</td>' +
+                    '<td>' + a.availableDate + '</td>' +
+                    '<td>' + a.lastFreeDate + '</td>' +
+                    '<td>' + a.requestedDate + '</td>' +
+                    '<td>' + a.startTime + '</td>' +
+                    '<td>' + a.endTime + '</td>' +
+                    '<td><span class="status-badge status-' + statusClass + '">' + a.status + '</span></td>' +
+                    '<td class="apex-response">' + apexResponse + '</td>' +
+                    '<td>' + formatDate(a.submittedAt) + '</td>';
+                tbody.appendChild(row);
+            });
+        }
+
+        async function loadData() {
+            allAppts = await getAllAppointments();
+            renderTable();
+        }
+
+        document.getElementById('searchInput').addEventListener('input', renderTable);
+        document.getElementById('statusFilter').addEventListener('change', renderTable);
+        document.getElementById('facilityFilter').addEventListener('change', renderTable);
+        window.addEventListener('load', loadData);
+    </script>
+</body>
+</html>

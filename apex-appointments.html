@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Dray Appointment Scheduling</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 13px; background: #fff; color: #333; }
+
+        .header {
+            background-color: #232f3e; color: white; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center; height: 52px;
+        }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .logo { background-color: #ff9900; color: white; font-weight: bold; font-size: 13px; padding: 6px 16px; border-radius: 20px; }
+        .nav a { color: white; text-decoration: none; font-size: 12px; padding: 14px 12px; }
+        .nav a:hover { background-color: #37475a; }
+        .nav a.active { border-bottom: 3px solid #ff9900; }
+        .header-right { color: white; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+        .user-icon { width: 28px; height: 28px; background: #37475a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+        .main { padding: 24px 32px; max-width: 900px; }
+        .page-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; color: #111; }
+        .page-subtitle { font-size: 13px; color: #666; margin-bottom: 24px; }
+
+        .form-section { margin-bottom: 20px; }
+        .form-section-title { font-size: 14px; font-weight: bold; color: #232f3e; margin-bottom: 12px; border-bottom: 2px solid #ff9900; padding-bottom: 4px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label { font-size: 12px; font-weight: bold; color: #333; }
+        .form-group label .req { color: #d32f2f; }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; color: #333;
+        }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #ff9900; outline: none; box-shadow: 0 0 0 2px rgba(255,153,0,0.15);
+        }
+
+        .btn-submit {
+            padding: 10px 32px; background: #ff6600; color: white; border: none;
+            border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 20px;
+        }
+        .btn-submit:hover { background: #e55b00; }
+
+        .banner {
+            padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 13px;
+            display: none; align-items: center; gap: 8px;
+        }
+        .banner.success { background: #e8f5e8; border: 1px solid #067d62; color: #067d62; }
+        .banner.error { background: #fce4e4; border: 1px solid #d32f2f; color: #d32f2f; }
+        .banner.visible { display: flex; }
+
+        .info-note { font-size: 11px; color: #888; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">Apex Scheduling</div>
+            <nav class="nav">
+                <a href="apex-appointments.html" class="active">Schedule Appointment</a>
+                <a href="apex-carrier-dashboard.html">My Appointments</a>
+                <a href="apex-approval-dashboard.html">Apex Approvals</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="user-icon">👤</div>
+            <span>hsubrian@</span>
+        </div>
+    </div>
+
+    <div class="main">
+        <h1 class="page-title">Schedule Delivery Appointment</h1>
+        <p class="page-subtitle">Request a delivery appointment at an Apex facility. Apex will review and confirm your request.</p>
+
+        <div id="success-banner" class="banner success">✅ Appointment request submitted successfully. Apex will review and respond shortly.</div>
+        <div id="error-banner" class="banner error"></div>
+
+        <form id="appt-form" onsubmit="submitAppointment(event)">
+            <div class="form-section">
+                <div class="form-section-title">Apex Facility</div>
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Delivery Facility <span class="req">*</span></label>
+                        <select id="facility" required>
+                            <option value="">Select facility...</option>
+                            <option value="APEX LGB">APEX LGB — 18554 S. Susana Road, Rancho Dominguez, CA 90221</option>
+                            <option value="APEX Bensenville">APEX Bensenville — 1301 Devon Ave, Bensenville, IL 60106</option>
+                            <option value="APEX DFW">APEX DFW — 1250 Mustang Dr. STE 300, DFW Airport, Grapevine, TX 75261</option>
+                        </select>
+                        <div id="hours-info" class="info-note"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Container & Carrier Information</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Container Number <span class="req">*</span></label>
+                        <input type="text" id="containerNumber" placeholder="e.g. CAIU4628234" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Dray Carrier SCAC <span class="req">*</span></label>
+                        <select id="carrierScac" required>
+                            <option value="">Select carrier...</option>
+                            <option value="ATMI">ATMI - Atlas Marine LLC</option>
+                            <option value="RDXY">RDXY - RoadEx America</option>
+                            <option value="ULSE">ULSE - Century</option>
+                            <option value="DRAY">DRAY - Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Carrier Name</label>
+                        <input type="text" id="carrierName" readonly placeholder="Auto-populated from SCAC">
+                    </div>
+                    <div class="form-group">
+                        <label>Driver Name</label>
+                        <input type="text" id="driverName" placeholder="Optional">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Container Dates</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Container Available for Pickup <span class="req">*</span></label>
+                        <input type="date" id="availableDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Port Appointment Date</label>
+                        <input type="date" id="portApptDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Free Date <span class="req">*</span></label>
+                        <input type="date" id="lastFreeDate" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Requested Delivery at Apex</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Requested Delivery Date <span class="req">*</span></label>
+                        <input type="date" id="requestedDate" required>
+                        <div id="delivery-date-info" class="info-note"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Requested Start Time <span class="req">*</span></label>
+                        <input type="time" id="startTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Requested End Time <span class="req">*</span></label>
+                        <input type="time" id="endTime" required readonly style="background:#f5f5f5; cursor:not-allowed;">
+                        <div id="endtime-info" class="info-note"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Additional Notes</div>
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Dray Notes</label>
+                        <textarea id="drayNotes" placeholder="Any special instructions or notes for Apex..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Submit Appointment Request</button>
+        </form>
+    </div>
+    <script src="apex-config.js"></script>
+    <script>
+        const scacMap = {
+            'ATMI': 'Atlas Marine LLC',
+            'RDXY': 'RoadEx America',
+            'ULSE': 'Century',
+            'DRAY': 'Other'
+        };
+
+        // Operational hours per facility. Days: 0=Sun,1=Mon,...,6=Sat
+        const facilityHours = {
+            'APEX LGB': {
+                0: null, // Sunday closed
+                1: { open: '07:30', close: '22:30' },
+                2: { open: '07:30', close: '22:30' },
+                3: { open: '07:30', close: '22:30' },
+                4: { open: '07:30', close: '22:30' },
+                5: { open: '07:30', close: '22:30' },
+                6: null  // Saturday closed
+            },
+            'APEX Bensenville': {
+                0: { open: '07:00', close: '17:00' },
+                1: { open: '07:00', close: '17:00' },
+                2: { open: '07:00', close: '17:00' },
+                3: { open: '07:00', close: '17:00' },
+                4: { open: '07:00', close: '17:00' },
+                5: { open: '07:00', close: '17:00' },
+                6: { open: '07:00', close: '17:00' }
+            },
+            'APEX DFW': {
+                0: { open: '09:00', close: '17:00' },
+                1: { open: '09:00', close: '17:00' },
+                2: { open: '09:00', close: '17:00' },
+                3: { open: '09:00', close: '17:00' },
+                4: { open: '09:00', close: '17:00' },
+                5: { open: '09:00', close: '17:00' },
+                6: { open: '09:00', close: '17:00' }
+            }
+        };
+
+        const hoursDisplay = {
+            'APEX LGB': 'Mon–Fri: 7:30 AM – 10:30 PM | Sat–Sun: Closed',
+            'APEX Bensenville': 'Sun–Sat: 7:00 AM – 5:00 PM',
+            'APEX DFW': 'Sun–Sat: 9:00 AM – 5:00 PM'
+        };
+
+        document.getElementById('facility').addEventListener('change', function() {
+            const info = document.getElementById('hours-info');
+            if (this.value && hoursDisplay[this.value]) {
+                info.textContent = '🕐 Operational hours: ' + hoursDisplay[this.value];
+            } else {
+                info.textContent = '';
+            }
+        });
+
+        document.getElementById('carrierScac').addEventListener('change', function() {
+            document.getElementById('carrierName').value = scacMap[this.value] || '';
+        });
+
+        // Get the facility's hours for the currently selected date
+        function getSelectedDayHours() {
+            const facility = document.getElementById('facility').value;
+            const dateStr = document.getElementById('requestedDate').value;
+            if (!facility || !dateStr) return null;
+            const date = new Date(dateStr + 'T00:00:00');
+            const hours = facilityHours[facility];
+            return hours ? hours[date.getUTCDay()] : null;
+        }
+
+        // Set end time = start + 4h, clamped to facility close
+        function setEndTimeFromStart() {
+            const startVal = document.getElementById('startTime').value;
+            const infoEl = document.getElementById('endtime-info');
+            infoEl.textContent = '';
+            infoEl.style.color = '';
+            if (!startVal) return;
+            const [h, m] = startVal.split(':').map(Number);
+            let endH = h + 4;
+            let endM = m;
+            let naturalEnd = String(endH).padStart(2, '0') + ':' + String(endM).padStart(2, '0');
+            let endStr = naturalEnd;
+
+            const dayHours = getSelectedDayHours();
+            const facility = document.getElementById('facility').value;
+            if (dayHours && naturalEnd > dayHours.close) {
+                endStr = dayHours.close;
+                infoEl.style.color = '#e65100';
+                infoEl.textContent = '⚠️ End time capped at ' + dayHours.close + ' — ' + facility + ' closes at ' + dayHours.close + ' on this day.';
+            } else if (dayHours) {
+                infoEl.textContent = '✅ Auto-set to start + 4 hrs (within ' + facility + ' hours: ' + dayHours.open + '–' + dayHours.close + ')';
+            } else if (!facility) {
+                infoEl.textContent = 'ℹ️ Auto-set to start + 4 hrs. Select a facility to enforce hours.';
+            }
+            document.getElementById('endTime').value = endStr;
+        }
+
+        // Also enforce start time within open hours and set min/max on inputs
+        function updateTimeConstraints() {
+            const startEl = document.getElementById('startTime');
+            const endEl = document.getElementById('endTime');
+            const dayHours = getSelectedDayHours();
+            if (dayHours) {
+                startEl.min = dayHours.open;
+                startEl.max = dayHours.close;
+                endEl.min = dayHours.open;
+                endEl.max = dayHours.close;
+            } else {
+                startEl.removeAttribute('min');
+                startEl.removeAttribute('max');
+                endEl.removeAttribute('min');
+                endEl.removeAttribute('max');
+            }
+        }
+
+        function validateHours(facility, dateStr, startTime, endTime) {
+            if (!facility || !dateStr || !startTime) return null;
+            const date = new Date(dateStr + 'T00:00:00');
+            const day = date.getUTCDay();
+            const hours = facilityHours[facility];
+            if (!hours) return null;
+            const dayHours = hours[day];
+            const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+            if (!dayHours) {
+                return facility + ' is closed on ' + dayNames[day] + '. Please select a different date.';
+            }
+            if (startTime < dayHours.open) {
+                return facility + ' does not open until ' + dayHours.open + ' on ' + dayNames[day] + '.';
+            }
+            if (startTime >= dayHours.close) {
+                return facility + ' closes at ' + dayHours.close + ' on ' + dayNames[day] + '. Start time must be before closing.';
+            }
+            if (endTime && endTime > dayHours.close) {
+                return 'Requested end time (' + endTime + ') is past ' + facility + ' closing time (' + dayHours.close + '). Please adjust.';
+            }
+            if (endTime && endTime <= startTime) {
+                return 'End time must be after start time.';
+            }
+            return null;
+        }
+
+        document.getElementById('startTime').addEventListener('change', function() {
+            setEndTimeFromStart();
+        });
+        document.getElementById('requestedDate').addEventListener('change', function() {
+            updateTimeConstraints();
+            setEndTimeFromStart();
+            validateDeliveryDate();
+        });
+        document.getElementById('facility').addEventListener('change', function() {
+            updateTimeConstraints();
+            setEndTimeFromStart();
+        });
+        document.getElementById('portApptDate').addEventListener('change', validateDeliveryDate);
+
+        function validateDeliveryDate() {
+            const infoEl = document.getElementById('delivery-date-info');
+            const portDate = document.getElementById('portApptDate').value;
+            const reqDate = document.getElementById('requestedDate').value;
+            infoEl.textContent = '';
+            infoEl.style.color = '';
+            if (!portDate || !reqDate) return;
+
+            if (reqDate < portDate) {
+                infoEl.style.color = '#d32f2f';
+                infoEl.textContent = '❌ Requested delivery date is before the Port Appointment Date. Delivery cannot occur before port pickup.';
+            } else if (reqDate > portDate) {
+                infoEl.style.color = '#e65100';
+                infoEl.textContent = '⚠️ Requested delivery date is later than the Port Appointment Date. Devices requires same-day delivery from port to Apex.';
+            } else {
+                infoEl.style.color = '#067d62';
+                infoEl.textContent = '✅ Matches Port Appointment Date — same-day delivery.';
+            }
+        }
+
+        async function submitAppointment(e) {
+            e.preventDefault();
+            const errBanner = document.getElementById('error-banner');
+            const successBanner = document.getElementById('success-banner');
+            const submitBtn = document.querySelector('.btn-submit');
+            errBanner.classList.remove('visible');
+            successBanner.classList.remove('visible');
+
+            const facility = document.getElementById('facility').value;
+            const container = document.getElementById('containerNumber').value.trim();
+            const scac = document.getElementById('carrierScac').value;
+            const carrierName = document.getElementById('carrierName').value;
+            const driverName = document.getElementById('driverName').value.trim();
+            const availableDate = document.getElementById('availableDate').value;
+            const portApptDate = document.getElementById('portApptDate').value;
+            const lastFreeDate = document.getElementById('lastFreeDate').value;
+            const requestedDate = document.getElementById('requestedDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const drayNotes = document.getElementById('drayNotes').value.trim();
+
+            if (!facility || !container || !scac || !availableDate || !lastFreeDate || !requestedDate || !startTime || !endTime) {
+                errBanner.textContent = '❌ Please fill in all required fields.';
+                errBanner.classList.add('visible');
+                return;
+            }
+
+            if (portApptDate && requestedDate < portApptDate) {
+                errBanner.textContent = '❌ Requested delivery date is before the Port Appointment Date. Delivery cannot occur before port pickup.';
+                errBanner.classList.add('visible');
+                return;
+            }
+
+            const hoursError = validateHours(facility, requestedDate, startTime, endTime);
+            if (hoursError) {
+                errBanner.textContent = '❌ ' + hoursError;
+                errBanner.classList.add('visible');
+                return;
+            }
+
+            const appt = {
+                id: 'APT-' + Date.now().toString(36).toUpperCase(),
+                facility: facility,
+                containerNumber: container,
+                carrierScac: scac,
+                carrierName: carrierName,
+                driverName: driverName,
+                availableDate: availableDate,
+                portApptDate: portApptDate,
+                lastFreeDate: lastFreeDate,
+                requestedDate: requestedDate,
+                startTime: startTime,
+                endTime: endTime,
+                drayNotes: drayNotes,
+                status: 'Pending',
+                apexAlternativeDate: '',
+                altStartTime: '',
+                altEndTime: '',
+                apexComments: '',
+                submittedAt: new Date().toISOString(),
+                submittedBy: 'hsubrian@'
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                await addAppointment(appt);
+                document.getElementById('appt-form').reset();
+                document.getElementById('carrierName').value = '';
+                document.getElementById('hours-info').textContent = '';
+                document.getElementById('endtime-info').textContent = '';
+                document.getElementById('delivery-date-info').textContent = '';
+                successBanner.classList.add('visible');
+                setTimeout(() => { successBanner.classList.remove('visible'); }, 4000);
+            } catch(err) {
+                errBanner.textContent = '❌ Failed to submit: ' + err.message;
+                errBanner.classList.add('visible');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Appointment Request';
+            }
+        }
+    </script>
+</body>
+</html>

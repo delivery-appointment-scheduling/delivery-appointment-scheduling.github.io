@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Approvals - Apex Scheduling</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 13px; background: #fff; color: #333; }
+
+        .header {
+            background-color: #232f3e; color: white; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center; height: 52px;
+        }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .logo { background-color: #ff9900; color: white; font-weight: bold; font-size: 13px; padding: 6px 16px; border-radius: 20px; }
+        .nav a { color: white; text-decoration: none; font-size: 12px; padding: 14px 12px; }
+        .nav a:hover { background-color: #37475a; }
+        .nav a.active { border-bottom: 3px solid #ff9900; }
+        .header-right { color: white; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+        .user-icon { width: 28px; height: 28px; background: #37475a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+        .main { padding: 24px 32px; }
+        .page-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; color: #111; }
+        .page-subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }
+
+        .tab-section { display: flex; gap: 0; margin-bottom: 16px; }
+        .tab-btn {
+            padding: 8px 18px; border: 1px solid #ccc; cursor: pointer;
+            font-size: 12px; font-weight: bold; background-color: white; color: #333;
+        }
+        .tab-btn:first-child { border-radius: 4px 0 0 4px; }
+        .tab-btn:last-child { border-radius: 0 4px 4px 0; }
+        .tab-btn.active { background-color: #ff6600; color: white; border-color: #ff6600; }
+        .tab-btn .badge {
+            background: #d32f2f; color: white; font-size: 10px; padding: 1px 6px;
+            border-radius: 10px; margin-left: 6px;
+        }
+        .tab-btn.active .badge { background: white; color: #ff6600; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .table-wrapper { border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th {
+            background-color: #fafafa; padding: 10px 10px; text-align: left;
+            border-bottom: 2px solid #ddd; font-weight: bold; white-space: nowrap; color: #333; font-size: 11px;
+        }
+        td { padding: 10px 10px; border-bottom: 1px solid #eee; white-space: nowrap; color: #333; vertical-align: top; }
+        tr:hover { background-color: #f5f5f5; }
+
+        .status-badge {
+            padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block;
+        }
+        .status-Pending { background: #fff3cd; color: #856404; }
+        .status-Confirmed { background: #e8f5e8; color: #067d62; }
+        .status-Rejected { background: #fce4e4; color: #d32f2f; }
+        .status-Alternative { background: #e3f2fd; color: #0073bb; }
+
+        .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn-sm {
+            padding: 5px 12px; border: none; border-radius: 4px; font-size: 11px;
+            font-weight: bold; cursor: pointer;
+        }
+        .btn-confirm { background: #067d62; color: white; }
+        .btn-confirm:hover { background: #056652; }
+        .btn-reject { background: #d32f2f; color: white; }
+        .btn-reject:hover { background: #b71c1c; }
+        .btn-alt { background: #0073bb; color: white; }
+        .btn-alt:hover { background: #005a94; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+        .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal {
+            background: white; border-radius: 8px; padding: 24px; width: 420px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .modal h3 { font-size: 16px; margin-bottom: 4px; }
+        .modal .modal-sub { font-size: 12px; color: #666; margin-bottom: 16px; }
+        .modal .form-group { margin-bottom: 12px; }
+        .modal label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; }
+        .modal input, .modal textarea {
+            width: 100%; padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px;
+        }
+        .modal textarea { resize: vertical; min-height: 60px; }
+        .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+        .modal-btns .btn-sm { padding: 8px 20px; font-size: 12px; }
+        .btn-cancel-modal { background: #eee; color: #333; }
+
+        .banner {
+            padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 13px;
+            display: none; align-items: center; gap: 8px;
+        }
+        .banner.success { background: #e8f5e8; border: 1px solid #067d62; color: #067d62; }
+        .banner.visible { display: flex; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">Apex Scheduling</div>
+            <nav class="nav">
+                <a href="apex-appointments.html">Schedule Appointment</a>
+                <a href="apex-carrier-dashboard.html">My Appointments</a>
+                <a href="apex-approval-dashboard.html" class="active">Apex Approvals</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="user-icon">👤</div>
+            <span>hsubrian@</span>
+        </div>
+    </div>
+
+    <div class="main">
+        <h1 class="page-title">Apex Approval Dashboard</h1>
+        <p class="page-subtitle">Review and respond to delivery appointment requests from dray carriers.</p>
+
+        <div id="success-banner" class="banner success"></div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div class="tab-section" style="margin-bottom:0;">
+                <button class="tab-btn active" onclick="switchTab(this,'pending')">Pending Review <span class="badge" id="pending-badge">0</span></button>
+                <button class="tab-btn" onclick="switchTab(this,'processed')">Processed</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <label style="font-size:12px; font-weight:bold; color:#333;">Facility:</label>
+                <select id="facilityFilter" onchange="renderAll()" style="padding:6px 10px; border:1px solid #aab7b8; border-radius:4px; font-size:12px;">
+                    <option value="">All Facilities</option>
+                    <option value="APEX LGB">APEX LGB</option>
+                    <option value="APEX Bensenville">APEX Bensenville</option>
+                    <option value="APEX DFW">APEX DFW</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- PENDING TAB -->
+        <div id="tab-pending" class="tab-content active">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Appt ID</th>
+                            <th>Facility</th>
+                            <th>Container Number</th>
+                            <th>Carrier SCAC</th>
+                            <th>Carrier Name</th>
+                            <th>Available for Pickup</th>
+                            <th>Last Free Date</th>
+                            <th>Requested Date</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Dray Notes</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pending-tbody"></tbody>
+                </table>
+            </div>
+            <div id="pending-empty" class="empty-state" style="display:none;">
+                <div class="icon">✅</div>
+                <p>No pending appointment requests. All caught up.</p>
+            </div>
+        </div>
+
+        <!-- PROCESSED TAB -->
+        <div id="tab-processed" class="tab-content">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Appt ID</th>
+                            <th>Facility</th>
+                            <th>Container Number</th>
+                            <th>Carrier SCAC</th>
+                            <th>Carrier Name</th>
+                            <th>Requested Date</th>
+                            <th>Start - End</th>
+                            <th>Decision</th>
+                            <th>Alternative Date</th>
+                            <th>Alt Time</th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody id="processed-tbody"></tbody>
+                </table>
+            </div>
+            <div id="processed-empty" class="empty-state" style="display:none;">
+                <div class="icon">📋</div>
+                <p>No processed appointments yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alternative Proposal Modal -->
+    <div class="modal-overlay" id="alt-modal">
+        <div class="modal">
+            <h3>Propose Alternative</h3>
+            <p class="modal-sub" id="modal-container"></p>
+            <input type="hidden" id="modal-appt-id">
+            <div class="form-group">
+                <label>Alternative Date</label>
+                <input type="date" id="altDate">
+            </div>
+            <div class="form-group">
+                <label>Start Time</label>
+                <input type="time" id="altStart">
+            </div>
+            <div class="form-group">
+                <label>End Time</label>
+                <input type="time" id="altEnd">
+            </div>
+            <div class="form-group">
+                <label>Comments</label>
+                <textarea id="altComments" placeholder="Reason for alternative or additional notes..."></textarea>
+            </div>
+            <div class="modal-btns">
+                <button class="btn-sm btn-cancel-modal" onclick="closeModal()">Cancel</button>
+                <button class="btn-sm btn-alt" onclick="submitAlternative()">Submit Alternative</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="apex-config.js"></script>
+    <script>
+        let allAppts = [];
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' +
+                   d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function switchTab(btn, tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        function showBanner(msg) {
+            const b = document.getElementById('success-banner');
+            b.textContent = '✅ ' + msg;
+            b.classList.add('visible');
+            setTimeout(() => b.classList.remove('visible'), 3000);
+        }
+
+        async function confirmAppt(id) {
+            const comment = prompt('Add a comment (optional):') || '';
+            const appt = allAppts.find(a => a.id === id);
+            if (appt) {
+                appt.status = 'Confirmed';
+                appt.apexComments = comment;
+                try {
+                    await updateAppointmentRow(appt._rowIndex, appt);
+                    showBanner('Appointment ' + id + ' confirmed.');
+                    renderAll();
+                } catch(e) { alert('Failed to update: ' + e.message); }
+            }
+        }
+
+        async function rejectAppt(id) {
+            const reason = prompt('Reason for rejection:');
+            if (reason === null) return;
+            const appt = allAppts.find(a => a.id === id);
+            if (appt) {
+                appt.status = 'Rejected';
+                appt.apexComments = reason || 'No reason provided';
+                try {
+                    await updateAppointmentRow(appt._rowIndex, appt);
+                    showBanner('Appointment ' + id + ' rejected.');
+                    renderAll();
+                } catch(e) { alert('Failed to update: ' + e.message); }
+            }
+        }
+
+        function openAltModal(id, container) {
+            document.getElementById('modal-appt-id').value = id;
+            document.getElementById('modal-container').textContent = 'Container: ' + container;
+            document.getElementById('altDate').value = '';
+            document.getElementById('altStart').value = '';
+            document.getElementById('altEnd').value = '';
+            document.getElementById('altComments').value = '';
+            document.getElementById('alt-modal').classList.add('visible');
+        }
+
+        function closeModal() {
+            document.getElementById('alt-modal').classList.remove('visible');
+        }
+
+        async function submitAlternative() {
+            const id = document.getElementById('modal-appt-id').value;
+            const altDate = document.getElementById('altDate').value;
+            const altStart = document.getElementById('altStart').value;
+            const altEnd = document.getElementById('altEnd').value;
+            const comments = document.getElementById('altComments').value;
+
+            if (!altDate || !altStart || !altEnd) {
+                alert('Please fill in the alternative date and time.');
+                return;
+            }
+
+            const appt = allAppts.find(a => a.id === id);
+            if (appt) {
+                appt.status = 'Alternative Proposed';
+                appt.apexAlternativeDate = altDate;
+                appt.altStartTime = altStart;
+                appt.altEndTime = altEnd;
+                appt.apexComments = comments;
+                try {
+                    await updateAppointmentRow(appt._rowIndex, appt);
+                    closeModal();
+                    showBanner('Alternative proposed for ' + id + '.');
+                    renderAll();
+                } catch(e) { alert('Failed to update: ' + e.message); }
+            }
+        }
+
+        function renderAll() {
+            const facilityFilter = document.getElementById('facilityFilter').value;
+            const filtered = facilityFilter ? allAppts.filter(a => a.facility === facilityFilter) : allAppts;
+            const pending = filtered.filter(a => a.status === 'Pending');
+            const processed = filtered.filter(a => a.status !== 'Pending');
+
+            document.getElementById('pending-badge').textContent = pending.length;
+
+            const pTbody = document.getElementById('pending-tbody');
+            const pEmpty = document.getElementById('pending-empty');
+            const pWrapper = document.querySelector('#tab-pending .table-wrapper');
+            pTbody.innerHTML = '';
+
+            if (pending.length === 0) {
+                pEmpty.style.display = 'block';
+                pWrapper.style.display = 'none';
+            } else {
+                pEmpty.style.display = 'none';
+                pWrapper.style.display = '';
+                pending.sort((a, b) => new Date(a.requestedDate) - new Date(b.requestedDate));
+                pending.forEach(a => {
+                    const row = document.createElement('tr');
+                    row.innerHTML =
+                        '<td>' + a.id + '</td>' +
+                        '<td>' + (a.facility || '') + '</td>' +
+                        '<td>' + a.containerNumber + '</td>' +
+                        '<td>' + a.carrierScac + '</td>' +
+                        '<td>' + a.carrierName + '</td>' +
+                        '<td>' + a.availableDate + '</td>' +
+                        '<td>' + a.lastFreeDate + '</td>' +
+                        '<td>' + a.requestedDate + '</td>' +
+                        '<td>' + a.startTime + '</td>' +
+                        '<td>' + a.endTime + '</td>' +
+                        '<td style="white-space:normal;max-width:150px;">' + (a.drayNotes || '-') + '</td>' +
+                        '<td>' + formatDate(a.submittedAt) + '</td>' +
+                        '<td><div class="action-btns">' +
+                            '<button class="btn-sm btn-confirm" onclick="confirmAppt(\'' + a.id + '\')">Confirm</button>' +
+                            '<button class="btn-sm btn-reject" onclick="rejectAppt(\'' + a.id + '\')">Reject</button>' +
+                            '<button class="btn-sm btn-alt" onclick="openAltModal(\'' + a.id + '\',\'' + a.containerNumber + '\')">Alternative</button>' +
+                        '</div></td>';
+                    pTbody.appendChild(row);
+                });
+            }
+
+            const prTbody = document.getElementById('processed-tbody');
+            const prEmpty = document.getElementById('processed-empty');
+            const prWrapper = document.querySelector('#tab-processed .table-wrapper');
+            prTbody.innerHTML = '';
+
+            if (processed.length === 0) {
+                prEmpty.style.display = 'block';
+                prWrapper.style.display = 'none';
+            } else {
+                prEmpty.style.display = 'none';
+                prWrapper.style.display = '';
+                processed.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+                processed.forEach(a => {
+                    const statusClass = a.status === 'Alternative Proposed' ? 'Alternative' : a.status;
+                    const row = document.createElement('tr');
+                    row.innerHTML =
+                        '<td>' + a.id + '</td>' +
+                        '<td>' + (a.facility || '') + '</td>' +
+                        '<td>' + a.containerNumber + '</td>' +
+                        '<td>' + a.carrierScac + '</td>' +
+                        '<td>' + a.carrierName + '</td>' +
+                        '<td>' + a.requestedDate + '</td>' +
+                        '<td>' + a.startTime + ' - ' + a.endTime + '</td>' +
+                        '<td><span class="status-badge status-' + statusClass + '">' + a.status + '</span></td>' +
+                        '<td>' + (a.apexAlternativeDate || '-') + '</td>' +
+                        '<td>' + (a.altStartTime && a.altEndTime ? a.altStartTime + ' - ' + a.altEndTime : '-') + '</td>' +
+                        '<td style="white-space:normal;max-width:200px;">' + (a.apexComments || '-') + '</td>';
+                    prTbody.appendChild(row);
+                });
+            }
+        }
+
+        async function loadData() {
+            allAppts = await getAllAppointments();
+            renderAll();
+        }
+
+        window.addEventListener('load', loadData);
+    </script>
+</body>
+</html>
