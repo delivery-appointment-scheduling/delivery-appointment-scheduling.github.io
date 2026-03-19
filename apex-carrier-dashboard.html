@@ -83,6 +83,26 @@
 
         .apex-response { font-size: 11px; color: #555; }
         .apex-response .alt-date { color: #0073bb; font-weight: bold; }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; height: auto; padding: 10px 12px; gap: 8px; }
+            .header-left { flex-direction: column; gap: 8px; width: 100%; align-items: flex-start; }
+            .nav { display: flex; flex-wrap: wrap; gap: 0; }
+            .nav a { padding: 8px 10px; font-size: 12px; }
+            .header-right { font-size: 11px; width: 100%; justify-content: center; text-align: center; }
+            .main { padding: 16px 12px; }
+            .page-title { font-size: 18px; }
+            .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 10px 12px; }
+            .stat-card .num { font-size: 20px; }
+            .controls-row { flex-direction: column; gap: 8px; }
+            .controls-row input, .controls-row select { width: 100%; font-size: 14px; }
+            .tab-bar { width: 100%; }
+            .tab-btn { flex: 1; text-align: center; padding: 10px 8px; font-size: 11px; }
+            .table-wrapper { font-size: 11px; }
+            td, th { padding: 8px 6px; font-size: 11px; }
+        }
     </style>
 </head>
 <body>

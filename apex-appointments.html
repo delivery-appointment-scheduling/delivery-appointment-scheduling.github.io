@@ -55,6 +55,23 @@
         .banner.visible { display: flex; }
 
         .info-note { font-size: 11px; color: #888; margin-top: 4px; }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; height: auto; padding: 10px 12px; gap: 8px; }
+            .header-left { flex-direction: column; gap: 8px; width: 100%; align-items: flex-start; }
+            .nav { display: flex; flex-wrap: wrap; gap: 0; }
+            .nav a { padding: 8px 10px; font-size: 12px; }
+            .header-right { font-size: 11px; width: 100%; justify-content: center; text-align: center; }
+            .main { padding: 16px 14px; }
+            .page-title { font-size: 18px; }
+            .form-grid { grid-template-columns: 1fr; gap: 12px; }
+            .form-group.full { grid-column: 1; }
+            .btn-submit { width: 100%; padding: 14px; font-size: 16px; }
+            .banner { font-size: 12px; }
+            .form-group select { font-size: 14px; }
+            .form-group input, .form-group textarea { font-size: 14px; }
+        }
     </style>
 </head>
 <body>

@@ -126,6 +126,25 @@
         }
         .banner.success { background: #e8f5e8; border: 1px solid #067d62; color: #067d62; }
         .banner.visible { display: flex; }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; height: auto; padding: 10px 12px; gap: 8px; }
+            .header-left { flex-direction: column; gap: 8px; width: 100%; align-items: flex-start; }
+            .nav { display: flex; flex-wrap: wrap; gap: 0; }
+            .nav a { padding: 8px 10px; font-size: 12px; }
+            .header-right { font-size: 11px; width: 100%; justify-content: center; text-align: center; }
+            .main { padding: 16px 12px; }
+            .page-title { font-size: 18px; }
+            .tab-section { flex-wrap: wrap; }
+            .tab-btn { flex: 1; text-align: center; padding: 10px 8px; font-size: 11px; }
+            .table-wrapper { font-size: 11px; }
+            td, th { padding: 8px 6px; font-size: 11px; }
+            .action-btns { flex-direction: column; gap: 4px; }
+            .btn-sm { padding: 8px 12px; font-size: 12px; width: 100%; text-align: center; }
+            .modal { width: 90%; margin: 0 auto; padding: 20px 16px; }
+            .auth-box { margin: 0 16px; padding: 30px 20px; }
+        }
     </style>
 </head>
 <body>
@@ -168,8 +187,7 @@
             </nav>
         </div>
         <div class="header-right">
-            <div class="user-icon">👤</div>
-            <span>hsubrian@</span>
+            <span>For any issues or questions contact <a href="mailto:hsubrian@amazon.com" style="color:#ff9900; text-decoration:none;">hsubrian@amazon.com</a></span>
         </div>
     </div>
 
