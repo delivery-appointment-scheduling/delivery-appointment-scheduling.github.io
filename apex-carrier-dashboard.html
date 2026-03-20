@@ -242,6 +242,7 @@
                                 <th data-col="status" onclick="sortBy('status')">Status <span class="sort-icon">▲▼</span></th>
                                 <th>Apex Response</th>
                                 <th data-col="submittedAt" onclick="sortBy('submittedAt')">Submitted <span class="sort-icon">▲▼</span></th>
+                                <th data-col="respondedAt" onclick="sortBy('respondedAt')">Responded <span class="sort-icon">▲▼</span></th>
                             </tr>
                         </thead>
                         <tbody id="active-tbody"></tbody>
@@ -272,6 +273,7 @@
                                 <th data-col="status" onclick="sortBy('status')">Status <span class="sort-icon">▲▼</span></th>
                                 <th>Apex Response</th>
                                 <th data-col="submittedAt" onclick="sortBy('submittedAt')">Submitted <span class="sort-icon">▲▼</span></th>
+                                <th data-col="respondedAt" onclick="sortBy('respondedAt')">Responded <span class="sort-icon">▲▼</span></th>
                             </tr>
                         </thead>
                         <tbody id="past-tbody"></tbody>
@@ -437,7 +439,7 @@
 
             const isExpanded = expandedId === a.id;
             const deleteCell = adminMode ? '<td><button class="btn-delete" onclick="deleteRow(' + a._rowIndex + ',\'' + a.id + '\',event)">Delete</button></td>' : '';
-            const colSpan = adminMode ? 11 : 10;
+            const colSpan = adminMode ? 12 : 11;
             let html = '<tr class="clickable-row row-' + statusClass + '" onclick="toggleExpand(\'' + a.id + '\')" title="Click to expand details">' +
                 deleteCell +
                 '<td style="font-weight:600;color:#1a1a2e;">' + (isExpanded ? '▼ ' : '▶ ') + a.id + '</td>' +
@@ -449,7 +451,8 @@
                 '<td>' + a.startTime + '–' + a.endTime + '</td>' +
                 '<td><span class="status-badge status-' + statusClass + '">' + a.status + '</span></td>' +
                 '<td class="apex-response">' + apexResponse + '</td>' +
-                '<td style="color:#9ca3af;">' + formatDate(a.submittedAt) + '</td></tr>';
+                '<td style="color:#9ca3af;">' + formatDate(a.submittedAt) + '</td>' +
+                '<td style="color:#9ca3af;">' + formatDate(a.respondedAt) + '</td></tr>';
 
             if (isExpanded) {
                 html += '<tr class="expand-row open"><td colspan="' + colSpan + '" class="expand-cell"><div class="expand-grid">' +
@@ -468,6 +471,7 @@
                     '<div class="expand-item"><div class="el">Dray Notes</div><div class="ev">' + (a.drayNotes || '-') + '</div></div>' +
                     '<div class="expand-item"><div class="el">Apex Comments</div><div class="ev">' + (a.apexComments || '-') + '</div></div>' +
                     '<div class="expand-item"><div class="el">Submitted</div><div class="ev">' + formatDate(a.submittedAt) + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Responded</div><div class="ev">' + (a.respondedAt ? formatDate(a.respondedAt) : '-') + '</div></div>' +
                     (a.apexAlternativeDate ? '<div class="expand-item"><div class="el">Alternative Date</div><div class="ev">' + a.apexAlternativeDate + ' ' + (a.altStartTime||'') + '–' + (a.altEndTime||'') + '</div></div>' : '') +
                     '</div></td></tr>';
             }
@@ -509,7 +513,7 @@
             // Sort
             filtered.sort((a, b) => {
                 let va = a[sortCol] || '', vb = b[sortCol] || '';
-                if (sortCol === 'submittedAt') { va = new Date(va).getTime() || 0; vb = new Date(vb).getTime() || 0; }
+                if (sortCol === 'submittedAt' || sortCol === 'respondedAt') { va = new Date(va).getTime() || 0; vb = new Date(vb).getTime() || 0; }
                 if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
                 if (va < vb) return sortDir === 'asc' ? -1 : 1;
                 if (va > vb) return sortDir === 'asc' ? 1 : -1;
@@ -574,10 +578,10 @@
 
             const headers = ['Appt ID','Facility','Container Number','Carrier SCAC','Carrier Name',
                 'Available for Pickup','Last Free Date','Requested Date','Start Time','End Time',
-                'Status','Apex Alternative Date','Alt Start','Alt End','Apex Comments','Submitted'];
+                'Status','Apex Alternative Date','Alt Start','Alt End','Apex Comments','Submitted','Responded'];
             const keys = ['id','facility','containerNumber','carrierScac','carrierName',
                 'availableDate','lastFreeDate','requestedDate','startTime','endTime',
-                'status','apexAlternativeDate','altStartTime','altEndTime','apexComments','submittedAt'];
+                'status','apexAlternativeDate','altStartTime','altEndTime','apexComments','submittedAt','respondedAt'];
 
             const esc = (v) => { const s = String(v||''); return s.includes(',') || s.includes('"') || s.includes('\n') ? '"'+s.replace(/"/g,'""')+'"' : s; };
             let csv = headers.map(esc).join(',') + '\n';

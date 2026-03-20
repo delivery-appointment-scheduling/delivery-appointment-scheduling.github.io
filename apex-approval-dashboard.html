@@ -255,7 +255,7 @@ const id=document.getElementById('confirm-modal-id').value;
 const comment=document.getElementById('confirm-comment').value;
 const appt=allAppts.find(a=>a.id===id);
 if(appt){
-appt.status='Confirmed';appt.apexComments=comment;
+appt.status='Confirmed';appt.apexComments=comment;appt.respondedAt=new Date().toISOString();
 try{await updateAppointmentRow(appt._rowIndex,appt);document.getElementById('confirm-modal').style.display='none';showToast('✅ Appointment '+id+' confirmed.');renderAll();}
 catch(e){showToast('Failed to update: '+e.message,'error');}
 }}
@@ -273,7 +273,7 @@ const reason=document.getElementById('reject-reason').value;
 if(!reason.trim()){showToast('Please provide a reason for rejection.','warning');return;}
 const appt=allAppts.find(a=>a.id===id);
 if(appt){
-appt.status='Rejected';appt.apexComments=reason;
+appt.status='Rejected';appt.apexComments=reason;appt.respondedAt=new Date().toISOString();
 try{await updateAppointmentRow(appt._rowIndex,appt);document.getElementById('reject-modal').style.display='none';showToast('Appointment '+id+' rejected.','warning');renderAll();}
 catch(e){showToast('Failed to update: '+e.message,'error');}
 }}
@@ -296,7 +296,7 @@ const comments=document.getElementById('altComments').value;
 if(!altDate||!altStart||!altEnd){showToast('Please fill in the alternative date and time.','warning');return;}
 const appt=allAppts.find(a=>a.id===id);
 if(appt){
-appt.status='Alternative Proposed';appt.apexAlternativeDate=altDate;appt.altStartTime=altStart;appt.altEndTime=altEnd;appt.apexComments=comments;
+appt.status='Alternative Proposed';appt.apexAlternativeDate=altDate;appt.altStartTime=altStart;appt.altEndTime=altEnd;appt.apexComments=comments;appt.respondedAt=new Date().toISOString();
 try{await updateAppointmentRow(appt._rowIndex,appt);closeAltModal();showToast('Alternative proposed for '+id+'.');renderAll();}
 catch(e){showToast('Failed to update: '+e.message,'error');}
 }}
@@ -331,7 +331,7 @@ let success=0;
 for(const id of ids){
 const appt=allAppts.find(a=>a.id===id);
 if(appt&&appt.status==='Pending'){
-appt.status='Confirmed';appt.apexComments='Batch confirmed';
+appt.status='Confirmed';appt.apexComments='Batch confirmed';appt.respondedAt=new Date().toISOString();
 try{await updateAppointmentRow(appt._rowIndex,appt);success++;}catch(e){}
 }}
 selectedIds.clear();updateBatchBar();
@@ -345,7 +345,7 @@ let success=0;
 for(const id of ids){
 const appt=allAppts.find(a=>a.id===id);
 if(appt&&appt.status==='Pending'){
-appt.status='Rejected';appt.apexComments='Batch rejected';
+appt.status='Rejected';appt.apexComments='Batch rejected';appt.respondedAt=new Date().toISOString();
 try{await updateAppointmentRow(appt._rowIndex,appt);success++;}catch(e){}
 }}
 selectedIds.clear();updateBatchBar();
@@ -394,11 +394,11 @@ if(processed.length===0){
 prDiv.innerHTML='<div class="es"><div class="ei">📋</div><p>No processed appointments yet.</p></div>';
 }else{
 processed.sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
-let h='<div class="tw"><div class="ts"><table><thead><tr><th>Appt ID</th><th>Facility</th><th>Container Number</th><th>Carrier SCAC</th><th>Carrier Name</th><th>Requested Date</th><th>Start - End</th><th>Decision</th><th>Alternative Date</th><th>Alt Time</th><th>Comments</th></tr></thead><tbody>';
+let h='<div class="tw"><div class="ts"><table><thead><tr><th>Appt ID</th><th>Facility</th><th>Container Number</th><th>Carrier SCAC</th><th>Carrier Name</th><th>Requested Date</th><th>Start - End</th><th>Decision</th><th>Alternative Date</th><th>Alt Time</th><th>Comments</th><th>Responded</th></tr></thead><tbody>';
 processed.forEach(a=>{
 const sc=a.status==='Confirmed'?'sc':a.status==='Rejected'?'sr':'sa';
 const sl=a.status==='Alternative Proposed'?'Alt. Proposed':a.status;
-h+='<tr><td style="font-weight:600;color:#1a1a2e;">'+a.id+'</td><td>'+(a.facility||'')+'</td><td style="font-weight:500;">'+a.containerNumber+'</td><td>'+a.carrierScac+'</td><td>'+a.carrierName+'</td><td style="font-weight:500;">'+a.requestedDate+'</td><td>'+a.startTime+' – '+a.endTime+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td>'+(a.apexAlternativeDate||'-')+'</td><td>'+(a.altStartTime&&a.altEndTime?a.altStartTime+' – '+a.altEndTime:'-')+'</td><td style="white-space:normal;max-width:200px;">'+(a.apexComments||'-')+'</td></tr>';
+h+='<tr><td style="font-weight:600;color:#1a1a2e;">'+a.id+'</td><td>'+(a.facility||'')+'</td><td style="font-weight:500;">'+a.containerNumber+'</td><td>'+a.carrierScac+'</td><td>'+a.carrierName+'</td><td style="font-weight:500;">'+a.requestedDate+'</td><td>'+a.startTime+' – '+a.endTime+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td>'+(a.apexAlternativeDate||'-')+'</td><td>'+(a.altStartTime&&a.altEndTime?a.altStartTime+' – '+a.altEndTime:'-')+'</td><td style="white-space:normal;max-width:200px;">'+(a.apexComments||'-')+'</td><td style="color:#9ca3af;">'+formatDate(a.respondedAt)+'</td></tr>';
 });
 h+='</tbody></table></div></div>';
 prDiv.innerHTML=h;
