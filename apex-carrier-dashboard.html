@@ -4,111 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Appointments - Apex Scheduling</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 13px; background: #fff; color: #333; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; background: #f4f6f8; color: #1a1a2e; }
 
         .header {
-            background-color: #232f3e; color: white; padding: 0 20px;
-            display: flex; justify-content: space-between; align-items: center; height: 52px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #232f3e 100%);
+            color: white; padding: 0 28px;
+            display: flex; justify-content: space-between; align-items: center; height: 56px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        .header-left { display: flex; align-items: center; gap: 20px; }
-        .logo { background-color: #ff9900; color: white; font-weight: bold; font-size: 13px; padding: 6px 16px; border-radius: 20px; }
-        .nav a { color: white; text-decoration: none; font-size: 12px; padding: 14px 12px; }
-        .nav a:hover { background-color: #37475a; }
-        .nav a.active { border-bottom: 3px solid #ff9900; }
-        .header-right { color: white; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+        .header-left { display: flex; align-items: center; gap: 24px; }
+        .logo { background: linear-gradient(135deg, #ff9900, #ffad33); color: white; font-weight: 700; font-size: 13px; padding: 6px 18px; border-radius: 20px; letter-spacing: 0.3px; }
+        .nav { display: flex; }
+        .nav a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 12px; padding: 16px 14px; font-weight: 500; transition: all 0.2s; }
+        .nav a:hover { color: white; background: rgba(255,255,255,0.08); }
+        .nav a.active { color: white; border-bottom: 3px solid #ff9900; }
+        .header-right { color: rgba(255,255,255,0.8); font-size: 11px; }
+        .header-right a { color: #ffad33; text-decoration: none; font-weight: 500; }
+        .header-right a:hover { text-decoration: underline; }
 
-        .main { padding: 24px 32px; }
-        .page-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; color: #111; }
-        .page-subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }
+        .main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+        .page-header { margin-bottom: 24px; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; }
+        .page-subtitle { font-size: 13px; color: #6b7280; margin-top: 4px; font-weight: 400; }
 
-        .stats-row { display: flex; gap: 16px; margin-bottom: 20px; }
-        .stat-card {
-            padding: 14px 20px; border-radius: 6px; border: 1px solid #ddd; flex: 1; text-align: center;
-        }
-        .stat-card .num { font-size: 24px; font-weight: bold; }
-        .stat-card .label { font-size: 11px; color: #666; margin-top: 2px; }
-        .stat-pending { border-left: 4px solid #ff9900; }
-        .stat-pending .num { color: #ff9900; }
-        .stat-confirmed { border-left: 4px solid #067d62; }
-        .stat-confirmed .num { color: #067d62; }
-        .stat-rejected { border-left: 4px solid #d32f2f; }
-        .stat-rejected .num { color: #d32f2f; }
-        .stat-alt { border-left: 4px solid #0073bb; }
-        .stat-alt .num { color: #0073bb; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: white; padding: 18px 20px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); text-align: center; position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+        .stat-card .num { font-size: 28px; font-weight: 700; }
+        .stat-card .label { font-size: 11px; color: #6b7280; margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-pending::before { background: #ff9900; } .stat-pending .num { color: #ff9900; }
+        .stat-confirmed::before { background: #059669; } .stat-confirmed .num { color: #059669; }
+        .stat-rejected::before { background: #dc2626; } .stat-rejected .num { color: #dc2626; }
+        .stat-alt::before { background: #2563eb; } .stat-alt .num { color: #2563eb; }
 
-        .tab-bar { display: flex; gap: 0; margin-bottom: 16px; }
-        .tab-btn {
-            padding: 8px 18px; border: 1px solid #ccc; cursor: pointer;
-            font-size: 12px; font-weight: bold; background-color: white; color: #333;
-        }
-        .tab-btn:first-child { border-radius: 4px 0 0 4px; }
-        .tab-btn:last-child { border-radius: 0 4px 4px 0; }
-        .tab-btn.active { background-color: #ff6600; color: white; border-color: #ff6600; }
-        .tab-btn .badge {
-            background: #888; color: white; font-size: 10px; padding: 1px 6px;
-            border-radius: 10px; margin-left: 6px;
-        }
-        .tab-btn.active .badge { background: white; color: #ff6600; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+        .tab-bar { display: flex; gap: 0; }
+        .tab-btn { padding: 9px 20px; border: 1px solid #d1d5db; cursor: pointer; font-size: 12px; font-weight: 600; background: white; color: #4b5563; transition: all 0.15s; font-family: inherit; }
+        .tab-btn:first-child { border-radius: 8px 0 0 8px; }
+        .tab-btn:last-child { border-radius: 0 8px 8px 0; }
+        .tab-btn:hover { background: #f9fafb; }
+        .tab-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+        .tab-btn .badge { background: #e5e7eb; color: #4b5563; font-size: 10px; padding: 2px 7px; border-radius: 10px; margin-left: 6px; font-weight: 600; }
+        .tab-btn.active .badge { background: rgba(255,255,255,0.2); color: white; }
 
-        .controls-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
-        .controls-row input { flex: 1; padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; }
-        .controls-row select { padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; }
+        .btn-export { padding: 9px 18px; background: white; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; font-family: inherit; }
+        .btn-export:hover { background: #f9fafb; border-color: #9ca3af; }
+
+        .controls-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; background: white; padding: 12px 16px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .controls-row input { flex: 1; padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; font-family: inherit; background: #f9fafb; }
+        .controls-row input:focus { border-color: #ff9900; outline: none; box-shadow: 0 0 0 3px rgba(255,153,0,0.1); background: white; }
+        .controls-row select { padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; font-family: inherit; background: #f9fafb; cursor: pointer; }
+        .controls-row select:focus { border-color: #ff9900; outline: none; box-shadow: 0 0 0 3px rgba(255,153,0,0.1); }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .table-wrapper { border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; }
+        .table-wrapper { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
+        .table-scroll { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th {
-            background-color: #fafafa; padding: 10px 10px; text-align: left;
-            border-bottom: 2px solid #ddd; font-weight: bold; white-space: nowrap; color: #333; font-size: 11px;
-        }
-        td { padding: 10px 10px; border-bottom: 1px solid #eee; white-space: nowrap; color: #333; }
-        tr:hover { background-color: #f5f5f5; }
+        th { background: #f8fafc; padding: 12px 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; white-space: nowrap; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; user-select: none; transition: background 0.15s; }
+        th:hover { background: #eef1f5; }
+        th .sort-icon { font-size: 10px; margin-left: 4px; opacity: 0.4; }
+        th.sorted .sort-icon { opacity: 1; color: #ff9900; }
+        td { padding: 12px 12px; border-bottom: 1px solid #f3f4f6; white-space: nowrap; color: #374151; font-size: 12px; }
+        tr:last-child td { border-bottom: none; }
 
-        .status-badge {
-            padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block;
-        }
-        .status-Pending { background: #fff3cd; color: #856404; }
-        .status-Confirmed { background: #e8f5e8; color: #067d62; }
-        .status-Rejected { background: #fce4e4; color: #d32f2f; }
-        .status-Alternative { background: #e3f2fd; color: #0073bb; }
+        /* Color-coded row backgrounds */
+        tr.row-Pending { background: #fffbeb; }
+        tr.row-Pending:hover { background: #fef3c7; }
+        tr.row-Confirmed { background: #ecfdf5; }
+        tr.row-Confirmed:hover { background: #d1fae5; }
+        tr.row-Rejected { background: #fef2f2; }
+        tr.row-Rejected:hover { background: #fee2e2; }
+        tr.row-Alternative { background: #eff6ff; }
+        tr.row-Alternative:hover { background: #dbeafe; }
 
-        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
-        .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
-        .empty-state p { font-size: 14px; }
-        .empty-state a { color: #ff6600; text-decoration: none; font-weight: bold; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .status-Pending { background: #fef3c7; color: #92400e; }
+        .status-Confirmed { background: #d1fae5; color: #065f46; }
+        .status-Rejected { background: #fee2e2; color: #991b1b; }
+        .status-Alternative { background: #dbeafe; color: #1e40af; }
 
-        .apex-response { font-size: 11px; color: #555; }
-        .apex-response .alt-date { color: #0073bb; font-weight: bold; }
+        /* Expandable row detail */
+        .expand-row { display: none; }
+        .expand-row.open { display: table-row; }
+        .expand-cell { padding: 16px 20px; background: #f9fafb; border-bottom: 2px solid #e5e7eb; }
+        .expand-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .expand-item { font-size: 12px; }
+        .expand-item .el { color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        .expand-item .ev { color: #1a1a2e; margin-top: 2px; }
+        .clickable-row { cursor: pointer; }
 
-        .btn-export {
-            padding: 7px 16px; background: #232f3e; color: white; border: none;
-            border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 6px;
-        }
-        .btn-export:hover { background: #37475a; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; font-weight: 500; }
+        .empty-state a { color: #ff6600; text-decoration: none; font-weight: 600; }
+        .empty-state a:hover { text-decoration: underline; }
 
-        /* Mobile responsive */
+        .apex-response { font-size: 11px; color: #6b7280; }
+        .apex-response .alt-date { color: #2563eb; font-weight: 600; }
+
+        /* Loading spinner */
+        .loading-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
+        .spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #ff9900; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { margin-top: 12px; color: #6b7280; font-size: 13px; font-weight: 500; }
+
+        /* Skeleton loading for stat cards */
+        .stat-card.loading .num { background: #e5e7eb; color: transparent; border-radius: 4px; animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Toast */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 14px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; animation: toastIn 0.35s ease-out; min-width: 300px; max-width: 440px; }
+        .toast.success { background: #065f46; color: white; }
+        .toast.error { background: #991b1b; color: white; }
+        .toast-close { background: none; border: none; color: inherit; cursor: pointer; font-size: 16px; margin-left: auto; opacity: 0.7; padding: 0 0 0 12px; }
+        .toast-close:hover { opacity: 1; }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+
         @media (max-width: 768px) {
-            .header { flex-direction: column; height: auto; padding: 10px 12px; gap: 8px; }
-            .header-left { flex-direction: column; gap: 8px; width: 100%; align-items: flex-start; }
-            .nav { display: flex; flex-wrap: wrap; gap: 0; }
-            .nav a { padding: 8px 10px; font-size: 12px; }
-            .header-right { font-size: 11px; width: 100%; justify-content: center; text-align: center; }
-            .main { padding: 16px 12px; }
-            .page-title { font-size: 18px; }
-            .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .stat-card { padding: 10px 12px; }
-            .stat-card .num { font-size: 20px; }
-            .controls-row { flex-direction: column; gap: 8px; }
+            .header { flex-direction: column; height: auto; padding: 12px 16px; gap: 10px; }
+            .header-left { flex-direction: column; gap: 10px; width: 100%; align-items: flex-start; }
+            .nav { display: flex; flex-wrap: wrap; } .nav a { padding: 8px 10px; }
+            .header-right { font-size: 11px; width: 100%; text-align: center; }
+            .main { padding: 16px 12px; } .page-title { font-size: 18px; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .tab-bar { width: 100%; } .tab-btn { flex: 1; text-align: center; padding: 10px 8px; }
+            .btn-export { width: 100%; justify-content: center; }
+            .controls-row { flex-direction: column; }
             .controls-row input, .controls-row select { width: 100%; font-size: 14px; }
-            .tab-bar { width: 100%; }
-            .tab-btn { flex: 1; text-align: center; padding: 10px 8px; font-size: 11px; }
-            .table-wrapper { font-size: 11px; }
-            td, th { padding: 8px 6px; font-size: 11px; }
+            td, th { padding: 10px 8px; }
+            .expand-grid { grid-template-columns: 1fr 1fr; }
+            .toast-container { bottom: 12px; right: 12px; left: 12px; }
+            .toast { min-width: auto; }
         }
     </style>
 </head>
@@ -123,30 +157,33 @@
             </nav>
         </div>
         <div class="header-right">
-            <span>For any issues or questions contact <a href="mailto:hsubrian@amazon.com" style="color:#ff9900; text-decoration:none;">hsubrian@amazon.com</a></span>
+            <span>Questions? Contact <a href="mailto:hsubrian@amazon.com">hsubrian@amazon.com</a></span>
         </div>
     </div>
 
     <div class="main">
-        <h1 class="page-title">My Appointments</h1>
-        <p class="page-subtitle">View all your submitted delivery appointment requests and their approval status.</p>
-
-        <div class="stats-row">
-            <div class="stat-card stat-pending"><div class="num" id="count-pending">0</div><div class="label">Pending</div></div>
-            <div class="stat-card stat-confirmed"><div class="num" id="count-confirmed">0</div><div class="label">Confirmed</div></div>
-            <div class="stat-card stat-rejected"><div class="num" id="count-rejected">0</div><div class="label">Rejected</div></div>
-            <div class="stat-card stat-alt"><div class="num" id="count-alt">0</div><div class="label">Alternative Proposed</div></div>
+        <div class="page-header">
+            <h1 class="page-title">My Appointments</h1>
+            <p class="page-subtitle">Track your delivery appointment requests and their approval status.</p>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <div class="tab-bar" style="margin-bottom:0;">
-                <button class="tab-btn active" onclick="switchTab('active')">Active Appointments <span class="badge" id="active-badge">0</span></button>
-                <button class="tab-btn" onclick="switchTab('past')">Past Appointments <span class="badge" id="past-badge">0</span></button>
+        <div class="stats-row">
+            <div class="stat-card stat-pending loading"><div class="num" id="count-pending">—</div><div class="label">Pending</div></div>
+            <div class="stat-card stat-confirmed loading"><div class="num" id="count-confirmed">—</div><div class="label">Confirmed</div></div>
+            <div class="stat-card stat-rejected loading"><div class="num" id="count-rejected">—</div><div class="label">Rejected</div></div>
+            <div class="stat-card stat-alt loading"><div class="num" id="count-alt">—</div><div class="label">Alternative</div></div>
+        </div>
+
+        <div class="toolbar">
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('active')">Active <span class="badge" id="active-badge">0</span></button>
+                <button class="tab-btn" onclick="switchTab('past')">Past <span class="badge" id="past-badge">0</span></button>
             </div>
+            <button class="btn-export" onclick="exportCSV(currentTab)">📥 Export CSV</button>
         </div>
 
         <div class="controls-row">
-            <input type="text" id="searchInput" placeholder="Search by container number, carrier, or appointment ID...">
+            <input type="text" id="searchInput" placeholder="Search by container, carrier, or appointment ID...">
             <select id="facilityFilter">
                 <option value="">All Facilities</option>
                 <option value="APEX LGB">APEX LGB</option>
@@ -162,78 +199,90 @@
             </select>
         </div>
 
+        <!-- Loading state -->
+        <div id="loading-state" class="loading-overlay">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading appointments...</div>
+        </div>
+
         <!-- ACTIVE TAB -->
-        <div id="tab-active" class="tab-content active">
-            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-                <button class="btn-export" onclick="exportCSV('active')">📥 Export CSV</button>
-            </div>
+        <div id="tab-active" class="tab-content active" style="display:none;">
             <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Appt ID</th>
-                            <th>Facility</th>
-                            <th>Container Number</th>
-                            <th>Carrier SCAC</th>
-                            <th>Carrier Name</th>
-                            <th>Available for Pickup</th>
-                            <th>Last Free Date</th>
-                            <th>Requested Date</th>
-                            <th>Start Time</th>
-                            <th>End Time</th>
-                            <th>Status</th>
-                            <th>Apex Response</th>
-                            <th>Submitted</th>
-                        </tr>
-                    </thead>
-                    <tbody id="active-tbody"></tbody>
-                </table>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-col="id" onclick="sortBy('id')">Appt ID <span class="sort-icon">▲▼</span></th>
+                                <th data-col="facility" onclick="sortBy('facility')">Facility <span class="sort-icon">▲▼</span></th>
+                                <th data-col="containerNumber" onclick="sortBy('containerNumber')">Container <span class="sort-icon">▲▼</span></th>
+                                <th data-col="carrierScac" onclick="sortBy('carrierScac')">SCAC <span class="sort-icon">▲▼</span></th>
+                                <th data-col="carrierName" onclick="sortBy('carrierName')">Carrier <span class="sort-icon">▲▼</span></th>
+                                <th data-col="requestedDate" onclick="sortBy('requestedDate')">Requested <span class="sort-icon">▲▼</span></th>
+                                <th data-col="startTime">Time</th>
+                                <th data-col="status" onclick="sortBy('status')">Status <span class="sort-icon">▲▼</span></th>
+                                <th>Apex Response</th>
+                                <th data-col="submittedAt" onclick="sortBy('submittedAt')">Submitted <span class="sort-icon">▲▼</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="active-tbody"></tbody>
+                    </table>
+                </div>
             </div>
             <div id="active-empty" class="empty-state" style="display:none;">
                 <div class="icon">📋</div>
-                <p>No active appointments.</p>
+                <p>No active appointments</p>
                 <p><a href="apex-appointments.html">Schedule a new appointment →</a></p>
             </div>
         </div>
 
         <!-- PAST TAB -->
-        <div id="tab-past" class="tab-content">
-            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-                <button class="btn-export" onclick="exportCSV('past')">📥 Export CSV</button>
-            </div>
+        <div id="tab-past" class="tab-content" style="display:none;">
             <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Appt ID</th>
-                            <th>Facility</th>
-                            <th>Container Number</th>
-                            <th>Carrier SCAC</th>
-                            <th>Carrier Name</th>
-                            <th>Available for Pickup</th>
-                            <th>Last Free Date</th>
-                            <th>Requested Date</th>
-                            <th>Start Time</th>
-                            <th>End Time</th>
-                            <th>Status</th>
-                            <th>Apex Response</th>
-                            <th>Submitted</th>
-                        </tr>
-                    </thead>
-                    <tbody id="past-tbody"></tbody>
-                </table>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-col="id" onclick="sortBy('id')">Appt ID <span class="sort-icon">▲▼</span></th>
+                                <th data-col="facility" onclick="sortBy('facility')">Facility <span class="sort-icon">▲▼</span></th>
+                                <th data-col="containerNumber" onclick="sortBy('containerNumber')">Container <span class="sort-icon">▲▼</span></th>
+                                <th data-col="carrierScac" onclick="sortBy('carrierScac')">SCAC <span class="sort-icon">▲▼</span></th>
+                                <th data-col="carrierName" onclick="sortBy('carrierName')">Carrier <span class="sort-icon">▲▼</span></th>
+                                <th data-col="requestedDate" onclick="sortBy('requestedDate')">Requested <span class="sort-icon">▲▼</span></th>
+                                <th data-col="startTime">Time</th>
+                                <th data-col="status" onclick="sortBy('status')">Status <span class="sort-icon">▲▼</span></th>
+                                <th>Apex Response</th>
+                                <th data-col="submittedAt" onclick="sortBy('submittedAt')">Submitted <span class="sort-icon">▲▼</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="past-tbody"></tbody>
+                    </table>
+                </div>
             </div>
             <div id="past-empty" class="empty-state" style="display:none;">
                 <div class="icon">📁</div>
-                <p>No past appointments.</p>
+                <p>No past appointments</p>
             </div>
         </div>
     </div>
+
+    <div class="toast-container" id="toast-container"></div>
 
     <script src="apex-config.js"></script>
     <script>
         let allAppts = [];
         let currentTab = 'active';
+        let sortCol = 'requestedDate';
+        let sortDir = 'asc';
+        let expandedId = null;
+
+        function showToast(message, type = 'success', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.innerHTML = '<span>' + message + '</span><button class="toast-close" onclick="this.parentElement.style.animation=\'toastOut 0.3s ease-in forwards\';setTimeout(()=>this.parentElement.remove(),300)">&times;</button>';
+            container.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) { toast.style.animation = 'toastOut 0.3s ease-in forwards'; setTimeout(() => toast.remove(), 300); } }, duration);
+        }
 
         function getTodayStr() {
             const d = new Date();
@@ -253,10 +302,36 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             if (tab === 'active') {
                 document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                sortCol = 'requestedDate'; sortDir = 'asc';
             } else {
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                sortCol = 'requestedDate'; sortDir = 'desc';
             }
             document.getElementById('tab-' + tab).classList.add('active');
+            expandedId = null;
+            renderTable();
+        }
+
+        function sortBy(col) {
+            if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+            else { sortCol = col; sortDir = 'asc'; }
+            // Update header styling
+            document.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sorted');
+                const icon = th.querySelector('.sort-icon');
+                if (icon) icon.textContent = '▲▼';
+            });
+            const activeTable = document.querySelector('#tab-' + currentTab + ' th[data-col="' + col + '"]');
+            if (activeTable) {
+                activeTable.classList.add('sorted');
+                const icon = activeTable.querySelector('.sort-icon');
+                if (icon) icon.textContent = sortDir === 'asc' ? '▲' : '▼';
+            }
+            renderTable();
+        }
+
+        function toggleExpand(id) {
+            expandedId = expandedId === id ? null : id;
             renderTable();
         }
 
@@ -269,25 +344,44 @@
                 apexResponse = a.apexComments ? '❌ ' + a.apexComments : '❌ Rejected';
             } else if (a.status === 'Alternative Proposed') {
                 apexResponse = '<span class="alt-date">📅 ' + (a.apexAlternativeDate || '') + ' ' +
-                    (a.altStartTime || '') + '-' + (a.altEndTime || '') + '</span>';
+                    (a.altStartTime || '') + '–' + (a.altEndTime || '') + '</span>';
                 if (a.apexComments) apexResponse += '<br>' + a.apexComments;
             }
-            const row = document.createElement('tr');
-            row.innerHTML =
-                '<td>' + a.id + '</td>' +
+
+            const isExpanded = expandedId === a.id;
+            let html = '<tr class="clickable-row row-' + statusClass + '" onclick="toggleExpand(\'' + a.id + '\')" title="Click to expand details">' +
+                '<td style="font-weight:600;color:#1a1a2e;">' + (isExpanded ? '▼ ' : '▶ ') + a.id + '</td>' +
                 '<td>' + (a.facility || '') + '</td>' +
-                '<td>' + a.containerNumber + '</td>' +
+                '<td style="font-weight:500;">' + a.containerNumber + '</td>' +
                 '<td>' + a.carrierScac + '</td>' +
                 '<td>' + a.carrierName + '</td>' +
-                '<td>' + a.availableDate + '</td>' +
-                '<td>' + a.lastFreeDate + '</td>' +
-                '<td>' + a.requestedDate + '</td>' +
-                '<td>' + a.startTime + '</td>' +
-                '<td>' + a.endTime + '</td>' +
+                '<td style="font-weight:500;">' + a.requestedDate + '</td>' +
+                '<td>' + a.startTime + '–' + a.endTime + '</td>' +
                 '<td><span class="status-badge status-' + statusClass + '">' + a.status + '</span></td>' +
                 '<td class="apex-response">' + apexResponse + '</td>' +
-                '<td>' + formatDate(a.submittedAt) + '</td>';
-            return row;
+                '<td style="color:#9ca3af;">' + formatDate(a.submittedAt) + '</td></tr>';
+
+            if (isExpanded) {
+                html += '<tr class="expand-row open"><td colspan="10" class="expand-cell"><div class="expand-grid">' +
+                    '<div class="expand-item"><div class="el">Appointment ID</div><div class="ev">' + a.id + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Facility</div><div class="ev">' + (a.facility || '-') + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Container Number</div><div class="ev">' + a.containerNumber + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Carrier SCAC</div><div class="ev">' + a.carrierScac + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Carrier Name</div><div class="ev">' + (a.carrierName || '-') + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Driver Name</div><div class="ev">' + (a.driverName || '-') + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Available for Pickup</div><div class="ev">' + (a.availableDate || '-') + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Port Appointment</div><div class="ev">' + (a.portApptDate || '-') + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Last Free Date</div><div class="ev">' + (a.lastFreeDate || '-') + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Requested Date</div><div class="ev">' + a.requestedDate + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Time Window</div><div class="ev">' + a.startTime + ' – ' + a.endTime + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Status</div><div class="ev">' + a.status + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Dray Notes</div><div class="ev">' + (a.drayNotes || '-') + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Apex Comments</div><div class="ev">' + (a.apexComments || '-') + '</div></div>' +
+                    '<div class="expand-item"><div class="el">Submitted</div><div class="ev">' + formatDate(a.submittedAt) + '</div></div>' +
+                    (a.apexAlternativeDate ? '<div class="expand-item"><div class="el">Alternative Date</div><div class="ev">' + a.apexAlternativeDate + ' ' + (a.altStartTime||'') + '–' + (a.altEndTime||'') + '</div></div>' : '') +
+                    '</div></td></tr>';
+            }
+            return html;
         }
 
         function renderTable() {
@@ -296,21 +390,18 @@
             const facilityFilter = document.getElementById('facilityFilter').value;
             const today = getTodayStr();
 
-            // Split into active (requested date >= today) and past (requested date < today)
             const activeAppts = allAppts.filter(a => a.requestedDate >= today);
             const pastAppts = allAppts.filter(a => a.requestedDate < today);
 
-            // Update stat cards (based on active only)
+            // Stats only count active appointments
             document.getElementById('count-pending').textContent = activeAppts.filter(a => a.status === 'Pending').length;
             document.getElementById('count-confirmed').textContent = activeAppts.filter(a => a.status === 'Confirmed').length;
             document.getElementById('count-rejected').textContent = activeAppts.filter(a => a.status === 'Rejected').length;
             document.getElementById('count-alt').textContent = activeAppts.filter(a => a.status === 'Alternative Proposed').length;
 
-            // Update badges
             document.getElementById('active-badge').textContent = activeAppts.length;
             document.getElementById('past-badge').textContent = pastAppts.length;
 
-            // Pick which list to render based on current tab
             const source = currentTab === 'active' ? activeAppts : pastAppts;
 
             const filtered = source.filter(a => {
@@ -325,43 +416,50 @@
                 return matchSearch && matchStatus && matchFacility;
             });
 
-            // Render active tab
-            const aTbody = document.getElementById('active-tbody');
-            const aEmpty = document.getElementById('active-empty');
-            const aWrapper = document.querySelector('#tab-active .table-wrapper');
-            // Render past tab
-            const pTbody = document.getElementById('past-tbody');
-            const pEmpty = document.getElementById('past-empty');
-            const pWrapper = document.querySelector('#tab-past .table-wrapper');
+            // Sort
+            filtered.sort((a, b) => {
+                let va = a[sortCol] || '', vb = b[sortCol] || '';
+                if (sortCol === 'submittedAt') { va = new Date(va).getTime() || 0; vb = new Date(vb).getTime() || 0; }
+                if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+                if (va < vb) return sortDir === 'asc' ? -1 : 1;
+                if (va > vb) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
 
-            if (currentTab === 'active') {
-                aTbody.innerHTML = '';
-                if (filtered.length === 0) {
-                    aEmpty.style.display = 'block';
-                    aWrapper.style.display = 'none';
-                } else {
-                    aEmpty.style.display = 'none';
-                    aWrapper.style.display = '';
-                    filtered.sort((a, b) => new Date(a.requestedDate) - new Date(b.requestedDate));
-                    filtered.forEach(a => aTbody.appendChild(buildRow(a)));
-                }
+            const tbodyId = currentTab === 'active' ? 'active-tbody' : 'past-tbody';
+            const emptyId = currentTab === 'active' ? 'active-empty' : 'past-empty';
+            const wrapperId = '#tab-' + currentTab + ' .table-wrapper';
+            const tbody = document.getElementById(tbodyId);
+            const empty = document.getElementById(emptyId);
+            const wrapper = document.querySelector(wrapperId);
+
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                empty.style.display = 'block'; wrapper.style.display = 'none';
             } else {
-                pTbody.innerHTML = '';
-                if (filtered.length === 0) {
-                    pEmpty.style.display = 'block';
-                    pWrapper.style.display = 'none';
-                } else {
-                    pEmpty.style.display = 'none';
-                    pWrapper.style.display = '';
-                    filtered.sort((a, b) => new Date(b.requestedDate) - new Date(a.requestedDate));
-                    filtered.forEach(a => pTbody.appendChild(buildRow(a)));
-                }
+                empty.style.display = 'none'; wrapper.style.display = '';
+                tbody.innerHTML = filtered.map(a => buildRow(a)).join('');
             }
         }
 
         async function loadData() {
-            allAppts = await getAllAppointments();
-            renderTable();
+            document.getElementById('loading-state').style.display = 'flex';
+            document.getElementById('tab-active').style.display = 'none';
+            document.getElementById('tab-past').style.display = 'none';
+            try {
+                allAppts = await getAllAppointments();
+                // Remove loading state from stat cards
+                document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('loading'));
+                document.getElementById('loading-state').style.display = 'none';
+                // Clear inline display:none so CSS classes can control visibility
+                document.getElementById('tab-active').style.display = '';
+                document.getElementById('tab-past').style.display = '';
+                document.getElementById('tab-' + currentTab).classList.add('active');
+                renderTable();
+            } catch(e) {
+                document.getElementById('loading-state').innerHTML = '<div class="icon" style="font-size:48px;">⚠️</div><div class="loading-text">Failed to load appointments. Please refresh.</div>';
+                showToast('Failed to load appointments: ' + e.message, 'error', 6000);
+            }
         }
 
         function exportCSV(type) {
@@ -369,11 +467,7 @@
             const source = type === 'active'
                 ? allAppts.filter(a => a.requestedDate >= today)
                 : allAppts.filter(a => a.requestedDate < today);
-
-            if (source.length === 0) {
-                alert('No data to export.');
-                return;
-            }
+            if (source.length === 0) { showToast('No data to export.', 'error'); return; }
 
             const headers = ['Appt ID','Facility','Container Number','Carrier SCAC','Carrier Name',
                 'Available for Pickup','Last Free Date','Requested Date','Start Time','End Time',
@@ -382,24 +476,15 @@
                 'availableDate','lastFreeDate','requestedDate','startTime','endTime',
                 'status','apexAlternativeDate','altStartTime','altEndTime','apexComments','submittedAt'];
 
-            const escapeCSV = (val) => {
-                const str = String(val || '');
-                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-                    return '"' + str.replace(/"/g, '""') + '"';
-                }
-                return str;
-            };
-
-            let csv = headers.map(escapeCSV).join(',') + '\n';
-            source.forEach(a => {
-                csv += keys.map(k => escapeCSV(a[k])).join(',') + '\n';
-            });
+            const esc = (v) => { const s = String(v||''); return s.includes(',') || s.includes('"') || s.includes('\n') ? '"'+s.replace(/"/g,'""')+'"' : s; };
+            let csv = headers.map(esc).join(',') + '\n';
+            source.forEach(a => { csv += keys.map(k => esc(a[k])).join(',') + '\n'; });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'apex-' + type + '-appointments-' + today + '.csv';
+            link.download = 'apex-' + type + '-appointments-' + getTodayStr() + '.csv';
             link.click();
             URL.revokeObjectURL(url);
         }

@@ -4,481 +4,451 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apex Approvals - Apex Scheduling</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 13px; background: #fff; color: #333; }
-
-        /* Password gate */
-        .auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff; z-index: 9999; display: flex; align-items: center; justify-content: center;
-        }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; background: #f4f6f8; color: #1a1a2e; }
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f6f8; z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .auth-overlay.hidden { display: none; }
-        .auth-box {
-            text-align: center; padding: 40px; border: 1px solid #ddd; border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1); max-width: 360px; width: 100%;
-        }
-        .auth-box .auth-logo { background-color: #ff9900; color: white; font-weight: bold; font-size: 14px; padding: 8px 20px; border-radius: 20px; display: inline-block; margin-bottom: 16px; }
-        .auth-box h2 { font-size: 16px; margin-bottom: 4px; color: #111; }
-        .auth-box p { font-size: 12px; color: #666; margin-bottom: 16px; }
-        .auth-box input {
-            width: 100%; padding: 10px 12px; border: 1px solid #aab7b8; border-radius: 4px;
-            font-size: 13px; margin-bottom: 12px;
-        }
-        .auth-box input:focus { border-color: #ff9900; outline: none; box-shadow: 0 0 0 2px rgba(255,153,0,0.15); }
-        .auth-box .auth-btn {
-            width: 100%; padding: 10px; background: #ff6600; color: white; border: none;
-            border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer;
-        }
-        .auth-box .auth-btn:hover { background: #e55b00; }
-        .auth-error { color: #d32f2f; font-size: 12px; margin-bottom: 10px; display: none; }
-
-        .header {
-            background-color: #232f3e; color: white; padding: 0 20px;
-            display: flex; justify-content: space-between; align-items: center; height: 52px;
-        }
-        .header-left { display: flex; align-items: center; gap: 20px; }
-        .logo { background-color: #ff9900; color: white; font-weight: bold; font-size: 13px; padding: 6px 16px; border-radius: 20px; }
-        .nav a { color: white; text-decoration: none; font-size: 12px; padding: 14px 12px; }
-        .nav a:hover { background-color: #37475a; }
-        .nav a.active { border-bottom: 3px solid #ff9900; }
-        .header-right { color: white; font-size: 12px; display: flex; align-items: center; gap: 8px; }
-        .user-icon { width: 28px; height: 28px; background: #37475a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-
-        .main { padding: 24px 32px; }
-        .page-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; color: #111; }
-        .page-subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }
-
-        .tab-section { display: flex; gap: 0; margin-bottom: 16px; }
-        .tab-btn {
-            padding: 8px 18px; border: 1px solid #ccc; cursor: pointer;
-            font-size: 12px; font-weight: bold; background-color: white; color: #333;
-        }
-        .tab-btn:first-child { border-radius: 4px 0 0 4px; }
-        .tab-btn:last-child { border-radius: 0 4px 4px 0; }
-        .tab-btn.active { background-color: #ff6600; color: white; border-color: #ff6600; }
-        .tab-btn .badge {
-            background: #d32f2f; color: white; font-size: 10px; padding: 1px 6px;
-            border-radius: 10px; margin-left: 6px;
-        }
-        .tab-btn.active .badge { background: white; color: #ff6600; }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .table-wrapper { border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th {
-            background-color: #fafafa; padding: 10px 10px; text-align: left;
-            border-bottom: 2px solid #ddd; font-weight: bold; white-space: nowrap; color: #333; font-size: 11px;
-        }
-        td { padding: 10px 10px; border-bottom: 1px solid #eee; white-space: nowrap; color: #333; vertical-align: top; }
-        tr:hover { background-color: #f5f5f5; }
-
-        .status-badge {
-            padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block;
-        }
-        .status-Pending { background: #fff3cd; color: #856404; }
-        .status-Confirmed { background: #e8f5e8; color: #067d62; }
-        .status-Rejected { background: #fce4e4; color: #d32f2f; }
-        .status-Alternative { background: #e3f2fd; color: #0073bb; }
-
-        .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
-        .btn-sm {
-            padding: 5px 12px; border: none; border-radius: 4px; font-size: 11px;
-            font-weight: bold; cursor: pointer;
-        }
-        .btn-confirm { background: #067d62; color: white; }
-        .btn-confirm:hover { background: #056652; }
-        .btn-reject { background: #d32f2f; color: white; }
-        .btn-reject:hover { background: #b71c1c; }
-        .btn-alt { background: #0073bb; color: white; }
-        .btn-alt:hover { background: #005a94; }
-
-        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
-        .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
-
-        /* Modal */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center;
-        }
-        .modal-overlay.visible { display: flex; }
-        .modal {
-            background: white; border-radius: 8px; padding: 24px; width: 420px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        .modal h3 { font-size: 16px; margin-bottom: 4px; }
-        .modal .modal-sub { font-size: 12px; color: #666; margin-bottom: 16px; }
-        .modal .form-group { margin-bottom: 12px; }
-        .modal label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; }
-        .modal input, .modal textarea {
-            width: 100%; padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px;
-        }
-        .modal textarea { resize: vertical; min-height: 60px; }
-        .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
-        .modal-btns .btn-sm { padding: 8px 20px; font-size: 12px; }
-        .btn-cancel-modal { background: #eee; color: #333; }
-
-        .banner {
-            padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 13px;
-            display: none; align-items: center; gap: 8px;
-        }
-        .banner.success { background: #e8f5e8; border: 1px solid #067d62; color: #067d62; }
-        .banner.visible { display: flex; }
-
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .header { flex-direction: column; height: auto; padding: 10px 12px; gap: 8px; }
-            .header-left { flex-direction: column; gap: 8px; width: 100%; align-items: flex-start; }
-            .nav { display: flex; flex-wrap: wrap; gap: 0; }
-            .nav a { padding: 8px 10px; font-size: 12px; }
-            .header-right { font-size: 11px; width: 100%; justify-content: center; text-align: center; }
-            .main { padding: 16px 12px; }
-            .page-title { font-size: 18px; }
-            .tab-section { flex-wrap: wrap; }
-            .tab-btn { flex: 1; text-align: center; padding: 10px 8px; font-size: 11px; }
-            .table-wrapper { font-size: 11px; }
-            td, th { padding: 8px 6px; font-size: 11px; }
-            .action-btns { flex-direction: column; gap: 4px; }
-            .btn-sm { padding: 8px 12px; font-size: 12px; width: 100%; text-align: center; }
-            .modal { width: 90%; margin: 0 auto; padding: 20px 16px; }
-            .auth-box { margin: 0 16px; padding: 30px 20px; }
-        }
+        .auth-box { text-align: center; padding: 40px 36px; background: white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06); max-width: 380px; width: 100%; }
+        .auth-box .auth-logo { background: linear-gradient(135deg, #ff9900, #ffad33); color: white; font-weight: 700; font-size: 13px; padding: 6px 18px; border-radius: 20px; display: inline-block; margin-bottom: 20px; letter-spacing: 0.3px; }
+        .auth-box h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #1a1a2e; }
+        .auth-box p { font-size: 12px; color: #6b7280; margin-bottom: 20px; }
+        .auth-box input { width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; margin-bottom: 12px; font-family: inherit; background: #f9fafb; }
+        .auth-box input:focus { border-color: #ff9900; outline: none; box-shadow: 0 0 0 3px rgba(255,153,0,0.1); background: white; }
+        .auth-box .auth-btn { width: 100%; padding: 11px; background: #1a1a2e; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+        .auth-box .auth-btn:hover { background: #2d2d4e; }
+        .auth-error { color: #dc2626; font-size: 12px; margin-bottom: 10px; display: none; font-weight: 500; }
+        .header { background: linear-gradient(135deg, #1a1a2e 0%, #232f3e 100%); color: white; padding: 0 28px; display: flex; justify-content: space-between; align-items: center; height: 56px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .header-left { display: flex; align-items: center; gap: 24px; }
+        .logo { background: linear-gradient(135deg, #ff9900, #ffad33); color: white; font-weight: 700; font-size: 13px; padding: 6px 18px; border-radius: 20px; letter-spacing: 0.3px; }
+        .nav { display: flex; }
+        .nav a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 12px; padding: 16px 14px; font-weight: 500; transition: all 0.2s; }
+        .nav a:hover { color: white; background: rgba(255,255,255,0.08); }
+        .nav a.active { color: white; border-bottom: 3px solid #ff9900; }
+        .header-right { color: rgba(255,255,255,0.8); font-size: 11px; }
+        .header-right a { color: #ffad33; text-decoration: none; font-weight: 500; }
+        .header-right a:hover { text-decoration: underline; }
+        .main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+        .page-header { margin-bottom: 24px; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; }
+        .page-subtitle { font-size: 13px; color: #6b7280; margin-top: 4px; font-weight: 400; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+        .toolbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .tab-bar { display: flex; gap: 0; }
+        .tab-btn { padding: 9px 20px; border: 1px solid #d1d5db; cursor: pointer; font-size: 12px; font-weight: 600; background: white; color: #4b5563; transition: all 0.15s; font-family: inherit; }
+        .tab-btn:first-child { border-radius: 8px 0 0 8px; }
+        .tab-btn:last-child { border-radius: 0 8px 8px 0; }
+        .tab-btn:hover { background: #f9fafb; }
+        .tab-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+        .tab-btn .badge { background: #e5e7eb; color: #4b5563; font-size: 10px; padding: 2px 7px; border-radius: 10px; margin-left: 6px; font-weight: 600; }
+        .tab-btn.active .badge { background: rgba(255,255,255,0.2); color: white; }
+        /* Facility counts bar */
+        .facility-counts { display: flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 500; color: #6b7280; background: white; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .fc-item { display: flex; align-items: center; gap: 4px; }
+        .fc-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .fc-sep { color: #d1d5db; }
+        .fc-count { font-weight: 700; color: #1a1a2e; }
+        .controls-card { display: flex; gap: 10px; align-items: center; background: white; padding: 10px 16px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .controls-card label { font-size: 12px; font-weight: 600; color: #374151; }
+        .controls-card select { padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px; font-family: inherit; background: #f9fafb; cursor: pointer; }
+        /* Batch action bar */
+        .batch-bar { display: none; align-items: center; gap: 12px; padding: 10px 16px; background: #1a1a2e; border-radius: 10px; margin-bottom: 12px; color: white; font-size: 13px; font-weight: 500; }
+        .batch-bar.visible { display: flex; }
+        .batch-bar .batch-count { background: #ff9900; color: white; padding: 2px 10px; border-radius: 12px; font-weight: 700; font-size: 12px; }
+        .batch-btn { padding: 7px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+        .batch-confirm { background: #059669; color: white; } .batch-confirm:hover { background: #047857; }
+        .batch-reject { background: #dc2626; color: white; } .batch-reject:hover { background: #b91c1c; }
+        .batch-clear { background: rgba(255,255,255,0.15); color: white; } .batch-clear:hover { background: rgba(255,255,255,0.25); }
+        /* Auto-refresh indicator */
+        .refresh-indicator { font-size: 11px; color: #9ca3af; display: flex; align-items: center; gap: 6px; }
+        .refresh-dot { width: 6px; height: 6px; border-radius: 50%; background: #059669; animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body>
-    <!-- Password Gate -->
-    <div class="auth-overlay" id="auth-overlay">
-        <div class="auth-box">
-            <div class="auth-logo">Apex Scheduling</div>
-            <h2>Apex Approvals</h2>
-            <p>This page is restricted to Apex facility staff.</p>
-            <div class="auth-error" id="auth-error">Incorrect password. Try again.</div>
-            <input type="password" id="auth-password" placeholder="Enter access code" onkeydown="if(event.key==='Enter')checkAuth()">
-            <button class="auth-btn" onclick="checkAuth()">Enter</button>
-        </div>
-    </div>
-
-    <script>
-        const APEX_ACCESS_CODE = 'apex2026';
-        function checkAuth() {
-            const input = document.getElementById('auth-password').value;
-            if (input === APEX_ACCESS_CODE) {
-                document.getElementById('auth-overlay').classList.add('hidden');
-                sessionStorage.setItem('apex-auth', 'true');
-            } else {
-                document.getElementById('auth-error').style.display = 'block';
-                document.getElementById('auth-password').value = '';
-            }
-        }
-        // Skip prompt if already authenticated this session
-        if (sessionStorage.getItem('apex-auth') === 'true') {
-            document.getElementById('auth-overlay').classList.add('hidden');
-        }
-    </script>
-    <div class="header">
-        <div class="header-left">
-            <div class="logo">Apex Scheduling</div>
-            <nav class="nav">
-                <a href="apex-appointments.html">Schedule Appointment</a>
-                <a href="apex-carrier-dashboard.html">My Appointments</a>
-                <a href="apex-approval-dashboard.html" class="active">Apex Approvals</a>
-            </nav>
-        </div>
-        <div class="header-right">
-            <span>For any issues or questions contact <a href="mailto:hsubrian@amazon.com" style="color:#ff9900; text-decoration:none;">hsubrian@amazon.com</a></span>
-        </div>
-    </div>
-
-    <div class="main">
-        <h1 class="page-title">Apex Approval Dashboard</h1>
-        <p class="page-subtitle">Review and respond to delivery appointment requests from dray carriers.</p>
-
-        <div id="success-banner" class="banner success"></div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <div class="tab-section" style="margin-bottom:0;">
+<div class="auth-overlay" id="auth-overlay"><div class="auth-box">
+    <div class="auth-logo">Apex Scheduling</div><h2>Apex Approvals</h2>
+    <p>This page is restricted to Apex facility staff.</p>
+    <div class="auth-error" id="auth-error">Incorrect password. Try again.</div>
+    <input type="password" id="auth-password" placeholder="Enter access code" onkeydown="if(event.key==='Enter')checkAuth()">
+    <button class="auth-btn" onclick="checkAuth()">Enter</button>
+    <button onclick="history.back()" style="width:100%;padding:10px;background:none;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:#6b7280;margin-top:8px;transition:all 0.15s;">← Go Back</button>
+</div></div>
+<script>
+const APEX_ACCESS_CODE='apex2026';
+function checkAuth(){const i=document.getElementById('auth-password').value;if(i===APEX_ACCESS_CODE){document.getElementById('auth-overlay').classList.add('hidden');sessionStorage.setItem('apex-auth','true');}else{document.getElementById('auth-error').style.display='block';document.getElementById('auth-password').value='';}}
+if(sessionStorage.getItem('apex-auth')==='true'){document.getElementById('auth-overlay').classList.add('hidden');}
+</script>
+<div class="header"><div class="header-left">
+    <div class="logo">Apex Scheduling</div>
+    <nav class="nav">
+        <a href="apex-appointments.html">Schedule Appointment</a>
+        <a href="apex-carrier-dashboard.html">My Appointments</a>
+        <a href="apex-approval-dashboard.html" class="active">Apex Approvals</a>
+    </nav>
+</div><div class="header-right"><span>Questions? Contact <a href="mailto:hsubrian@amazon.com">hsubrian@amazon.com</a></span></div></div>
+<div class="main">
+    <div class="page-header"><h1 class="page-title">Apex Approval Dashboard</h1><p class="page-subtitle">Review and respond to delivery appointment requests from dray carriers.</p></div>
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="tab-bar">
                 <button class="tab-btn active" onclick="switchTab(this,'pending')">Pending Review <span class="badge" id="pending-badge">0</span></button>
                 <button class="tab-btn" onclick="switchTab(this,'processed')">Processed</button>
             </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <label style="font-size:12px; font-weight:bold; color:#333;">Facility:</label>
-                <select id="facilityFilter" onchange="renderAll()" style="padding:6px 10px; border:1px solid #aab7b8; border-radius:4px; font-size:12px;">
-                    <option value="">All Facilities</option>
-                    <option value="APEX LGB">APEX LGB</option>
-                    <option value="APEX Bensenville">APEX Bensenville</option>
-                    <option value="APEX DFW">APEX DFW</option>
-                </select>
-            </div>
+            <div class="facility-counts" id="facility-counts"></div>
         </div>
-
-        <!-- PENDING TAB -->
-        <div id="tab-pending" class="tab-content active">
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Appt ID</th>
-                            <th>Facility</th>
-                            <th>Container Number</th>
-                            <th>Carrier SCAC</th>
-                            <th>Carrier Name</th>
-                            <th>Available for Pickup</th>
-                            <th>Last Free Date</th>
-                            <th>Requested Date</th>
-                            <th>Start Time</th>
-                            <th>End Time</th>
-                            <th>Dray Notes</th>
-                            <th>Submitted</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pending-tbody"></tbody>
-                </table>
-            </div>
-            <div id="pending-empty" class="empty-state" style="display:none;">
-                <div class="icon">✅</div>
-                <p>No pending appointment requests. All caught up.</p>
-            </div>
-        </div>
-
-        <!-- PROCESSED TAB -->
-        <div id="tab-processed" class="tab-content">
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Appt ID</th>
-                            <th>Facility</th>
-                            <th>Container Number</th>
-                            <th>Carrier SCAC</th>
-                            <th>Carrier Name</th>
-                            <th>Requested Date</th>
-                            <th>Start - End</th>
-                            <th>Decision</th>
-                            <th>Alternative Date</th>
-                            <th>Alt Time</th>
-                            <th>Comments</th>
-                        </tr>
-                    </thead>
-                    <tbody id="processed-tbody"></tbody>
-                </table>
-            </div>
-            <div id="processed-empty" class="empty-state" style="display:none;">
-                <div class="icon">📋</div>
-                <p>No processed appointments yet.</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div class="refresh-indicator"><div class="refresh-dot"></div> Auto-refresh 45s</div>
+            <div class="controls-card"><label>Facility:</label>
+                <select id="facilityFilter" onchange="renderAll()"><option value="">All Facilities</option><option value="APEX LGB">APEX LGB</option><option value="APEX Bensenville">APEX Bensenville</option><option value="APEX DFW">APEX DFW</option></select>
             </div>
         </div>
     </div>
-
-    <!-- Alternative Proposal Modal -->
-    <div class="modal-overlay" id="alt-modal">
-        <div class="modal">
-            <h3>Propose Alternative</h3>
-            <p class="modal-sub" id="modal-container"></p>
-            <input type="hidden" id="modal-appt-id">
-            <div class="form-group">
-                <label>Alternative Date</label>
-                <input type="date" id="altDate">
-            </div>
-            <div class="form-group">
-                <label>Start Time</label>
-                <input type="time" id="altStart">
-            </div>
-            <div class="form-group">
-                <label>End Time</label>
-                <input type="time" id="altEnd">
-            </div>
-            <div class="form-group">
-                <label>Comments</label>
-                <textarea id="altComments" placeholder="Reason for alternative or additional notes..."></textarea>
-            </div>
-            <div class="modal-btns">
-                <button class="btn-sm btn-cancel-modal" onclick="closeModal()">Cancel</button>
-                <button class="btn-sm btn-alt" onclick="submitAlternative()">Submit Alternative</button>
-            </div>
-        </div>
+    <!-- Batch action bar -->
+    <div class="batch-bar" id="batch-bar">
+        <span><span class="batch-count" id="batch-count">0</span> selected</span>
+        <button class="batch-btn batch-confirm" onclick="batchConfirm()">✓ Confirm All</button>
+        <button class="batch-btn batch-reject" onclick="batchReject()">✕ Reject All</button>
+        <button class="batch-btn batch-clear" onclick="clearSelection()">Clear</button>
     </div>
+    <!-- Loading state -->
+    <div id="loading-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;">
+        <div style="width:36px;height:36px;border:3px solid #e5e7eb;border-top-color:#ff9900;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <div style="margin-top:12px;color:#6b7280;font-size:13px;font-weight:500;">Loading appointments...</div>
+    </div>
+    <div id="tab-pending" class="tc active" style="display:none;"></div>
+    <div id="tab-processed" class="tc" style="display:none;"></div>
+</div>
+<!-- Confirm Modal -->
+<div id="confirm-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:1000;justify-content:center;align-items:center;">
+<div style="background:white;border-radius:12px;padding:28px;width:440px;box-shadow:0 8px 30px rgba(0,0,0,0.15);">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;color:#1a1a2e;">Confirm Appointment</h3>
+    <p id="confirm-modal-info" style="font-size:12px;color:#6b7280;margin-bottom:16px;"></p>
+    <input type="hidden" id="confirm-modal-id">
+    <div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;color:#374151;">Comment (optional)</label><textarea id="confirm-comment" placeholder="Add a comment..." style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;font-family:inherit;background:#f9fafb;resize:vertical;min-height:60px;"></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button onclick="document.getElementById('confirm-modal').style.display='none'" style="padding:9px 22px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#374151;">Cancel</button>
+        <button onclick="doConfirm()" style="padding:9px 22px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:#059669;color:white;">Confirm</button>
+    </div>
+</div></div>
+<!-- Reject Modal -->
+<div id="reject-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:1000;justify-content:center;align-items:center;">
+<div style="background:white;border-radius:12px;padding:28px;width:440px;box-shadow:0 8px 30px rgba(0,0,0,0.15);">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;color:#dc2626;">Reject Appointment</h3>
+    <p id="reject-modal-info" style="font-size:12px;color:#6b7280;margin-bottom:16px;"></p>
+    <input type="hidden" id="reject-modal-id">
+    <div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;color:#374151;">Reason for rejection <span style="color:#dc2626;">*</span></label><textarea id="reject-reason" placeholder="Provide a reason..." style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;font-family:inherit;background:#f9fafb;resize:vertical;min-height:60px;"></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button onclick="document.getElementById('reject-modal').style.display='none'" style="padding:9px 22px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#374151;">Cancel</button>
+        <button onclick="doReject()" style="padding:9px 22px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:#dc2626;color:white;">Reject</button>
+    </div>
+</div></div>
+<!-- Alternative Modal -->
+<div id="alt-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:1000;justify-content:center;align-items:center;">
+<div style="background:white;border-radius:12px;padding:28px;width:440px;box-shadow:0 8px 30px rgba(0,0,0,0.15);">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;color:#1a1a2e;">Propose Alternative</h3>
+    <p id="modal-container" style="font-size:12px;color:#6b7280;margin-bottom:16px;"></p>
+    <input type="hidden" id="modal-appt-id">
+    <div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;color:#374151;">Alternative Date</label><input type="date" id="altDate" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;font-family:inherit;background:#f9fafb;"></div>
+    <div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;color:#374151;">Start Time</label><input type="time" id="altStart" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;font-family:inherit;background:#f9fafb;"></div>
+    <div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;color:#374151;">End Time</label><input type="time" id="altEnd" style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;font-family:inherit;background:#f9fafb;"></div>
+    <div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;color:#374151;">Comments</label><textarea id="altComments" placeholder="Reason for alternative..." style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;font-family:inherit;background:#f9fafb;resize:vertical;min-height:60px;"></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button onclick="closeAltModal()" style="padding:9px 22px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#374151;">Cancel</button>
+        <button onclick="submitAlternative()" style="padding:9px 22px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:#2563eb;color:white;">Submit Alternative</button>
+    </div>
+</div></div>
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+.tc{display:none;}.tc.active{display:block;}
+.tw{background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);}
+.ts{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:#f8fafc;padding:12px;text-align:left;border-bottom:1px solid #e5e7eb;font-weight:600;white-space:nowrap;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;}
+td{padding:12px;border-bottom:1px solid #f3f4f6;white-space:nowrap;color:#374151;font-size:12px;}
+tr:hover{background:#fafbfc;}
+tr:last-child td{border-bottom:none;}
+.sb{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;display:inline-block;}
+.sb.sp{background:#fef3c7;color:#92400e;}.sb.sc{background:#d1fae5;color:#065f46;}
+.sb.sr{background:#fee2e2;color:#991b1b;}.sb.sa{background:#dbeafe;color:#1e40af;}
+.ab{display:flex;gap:6px;flex-wrap:wrap;}
+.sticky-col{position:sticky;left:0;background:white;z-index:1;box-shadow:2px 0 4px rgba(0,0,0,0.04);}
+thead .sticky-col{background:#f8fafc;z-index:2;}
+.bs{padding:6px 14px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+.bc{background:#059669;color:white;}.bc:hover{background:#047857;}
+.br{background:#dc2626;color:white;}.br:hover{background:#b91c1c;}
+.ba{background:#2563eb;color:white;}.ba:hover{background:#1d4ed8;}
+.es{text-align:center;padding:60px 20px;color:#9ca3af;}
+.es .ei{font-size:48px;margin-bottom:12px;}
+.es p{font-size:14px;font-weight:500;}
+/* Checkbox styling */
+.row-cb{width:16px;height:16px;cursor:pointer;accent-color:#ff9900;}
+/* Toast */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:14px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;animation:toastIn 0.35s ease-out;min-width:300px;max-width:440px;}
+.toast.success{background:#065f46;color:white;}
+.toast.error{background:#991b1b;color:white;}
+.toast.warning{background:#92400e;color:white;}
+.toast-close{background:none;border:none;color:inherit;cursor:pointer;font-size:16px;margin-left:auto;opacity:0.7;padding:0 0 0 12px;}
+.toast-close:hover{opacity:1;}
+@keyframes toastIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+@keyframes toastOut{from{transform:translateX(0);opacity:1;}to{transform:translateX(100%);opacity:0;}}
+@media(max-width:768px){
+.header{flex-direction:column;height:auto;padding:12px 16px;gap:10px;}
+.header-left{flex-direction:column;gap:10px;width:100%;align-items:flex-start;}
+.nav{display:flex;flex-wrap:wrap;}.nav a{padding:8px 10px;}
+.header-right{font-size:11px;width:100%;text-align:center;}
+.main{padding:16px 12px;}.page-title{font-size:18px;}
+.toolbar{flex-direction:column;align-items:stretch;}
+.toolbar-left{flex-direction:column;}
+.tab-bar{width:100%;}.tab-btn{flex:1;text-align:center;padding:10px 8px;font-size:11px;}
+.controls-card{flex-direction:column;}
+.facility-counts{flex-wrap:wrap;font-size:11px;}
+td,th{padding:10px 8px;}
+.ab{flex-direction:column;gap:4px;}
+.bs{padding:8px 12px;font-size:12px;width:100%;text-align:center;}
+#alt-modal>div,#confirm-modal>div,#reject-modal>div{width:90%!important;margin:0 auto;padding:20px 16px!important;}
+.auth-box{margin:0 16px;padding:30px 20px;}
+.batch-bar{flex-wrap:wrap;}
+.toast-container{bottom:12px;right:12px;left:12px;}
+.toast{min-width:auto;}
+}
+</style>
+<script src="apex-config.js"></script>
+<script>
+let allAppts=[];
+let selectedIds=new Set();
+let refreshTimer=null;
 
-    <script src="apex-config.js"></script>
-    <script>
-        let allAppts = [];
+function showToast(message,type='success',duration=4000){
+const c=document.getElementById('toast-container');
+const t=document.createElement('div');
+t.className='toast '+type;
+t.innerHTML='<span>'+message+'</span><button class="toast-close" onclick="this.parentElement.style.animation=\'toastOut 0.3s ease-in forwards\';setTimeout(()=>this.parentElement.remove(),300)">&times;</button>';
+c.appendChild(t);
+setTimeout(()=>{if(t.parentElement){t.style.animation='toastOut 0.3s ease-in forwards';setTimeout(()=>t.remove(),300);}},duration);
+}
 
-        function formatDate(iso) {
-            if (!iso) return '';
-            const d = new Date(iso);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' +
-                   d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        }
+function formatDate(iso){if(!iso)return'';const d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
 
-        function switchTab(btn, tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
-        }
+function switchTab(btn,tab){
+document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+document.querySelectorAll('.tc').forEach(c=>c.classList.remove('active'));
+document.getElementById('tab-'+tab).classList.add('active');
+selectedIds.clear();
+updateBatchBar();
+}
 
-        function showBanner(msg) {
-            const b = document.getElementById('success-banner');
-            b.textContent = '✅ ' + msg;
-            b.classList.add('visible');
-            setTimeout(() => b.classList.remove('visible'), 3000);
-        }
+// Confirm modal
+function openConfirmModal(id,container){
+document.getElementById('confirm-modal-id').value=id;
+document.getElementById('confirm-modal-info').textContent='Container: '+container;
+document.getElementById('confirm-comment').value='';
+document.getElementById('confirm-modal').style.display='flex';
+}
+async function doConfirm(){
+const id=document.getElementById('confirm-modal-id').value;
+const comment=document.getElementById('confirm-comment').value;
+const appt=allAppts.find(a=>a.id===id);
+if(appt){
+appt.status='Confirmed';appt.apexComments=comment;
+try{await updateAppointmentRow(appt._rowIndex,appt);document.getElementById('confirm-modal').style.display='none';showToast('✅ Appointment '+id+' confirmed.');renderAll();}
+catch(e){showToast('Failed to update: '+e.message,'error');}
+}}
 
-        async function confirmAppt(id) {
-            const comment = prompt('Add a comment (optional):') || '';
-            const appt = allAppts.find(a => a.id === id);
-            if (appt) {
-                appt.status = 'Confirmed';
-                appt.apexComments = comment;
-                try {
-                    await updateAppointmentRow(appt._rowIndex, appt);
-                    showBanner('Appointment ' + id + ' confirmed.');
-                    renderAll();
-                } catch(e) { alert('Failed to update: ' + e.message); }
-            }
-        }
+// Reject modal
+function openRejectModal(id,container){
+document.getElementById('reject-modal-id').value=id;
+document.getElementById('reject-modal-info').textContent='Container: '+container;
+document.getElementById('reject-reason').value='';
+document.getElementById('reject-modal').style.display='flex';
+}
+async function doReject(){
+const id=document.getElementById('reject-modal-id').value;
+const reason=document.getElementById('reject-reason').value;
+if(!reason.trim()){showToast('Please provide a reason for rejection.','warning');return;}
+const appt=allAppts.find(a=>a.id===id);
+if(appt){
+appt.status='Rejected';appt.apexComments=reason;
+try{await updateAppointmentRow(appt._rowIndex,appt);document.getElementById('reject-modal').style.display='none';showToast('Appointment '+id+' rejected.','warning');renderAll();}
+catch(e){showToast('Failed to update: '+e.message,'error');}
+}}
 
-        async function rejectAppt(id) {
-            const reason = prompt('Reason for rejection:');
-            if (reason === null) return;
-            const appt = allAppts.find(a => a.id === id);
-            if (appt) {
-                appt.status = 'Rejected';
-                appt.apexComments = reason || 'No reason provided';
-                try {
-                    await updateAppointmentRow(appt._rowIndex, appt);
-                    showBanner('Appointment ' + id + ' rejected.');
-                    renderAll();
-                } catch(e) { alert('Failed to update: ' + e.message); }
-            }
-        }
+// Alternative modal
+function openAltModal(id,container){
+document.getElementById('modal-appt-id').value=id;
+document.getElementById('modal-container').textContent='Container: '+container;
+document.getElementById('altDate').value='';document.getElementById('altStart').value='';
+document.getElementById('altEnd').value='';document.getElementById('altComments').value='';
+document.getElementById('alt-modal').style.display='flex';
+}
+function closeAltModal(){document.getElementById('alt-modal').style.display='none';}
+async function submitAlternative(){
+const id=document.getElementById('modal-appt-id').value;
+const altDate=document.getElementById('altDate').value;
+const altStart=document.getElementById('altStart').value;
+const altEnd=document.getElementById('altEnd').value;
+const comments=document.getElementById('altComments').value;
+if(!altDate||!altStart||!altEnd){showToast('Please fill in the alternative date and time.','warning');return;}
+const appt=allAppts.find(a=>a.id===id);
+if(appt){
+appt.status='Alternative Proposed';appt.apexAlternativeDate=altDate;appt.altStartTime=altStart;appt.altEndTime=altEnd;appt.apexComments=comments;
+try{await updateAppointmentRow(appt._rowIndex,appt);closeAltModal();showToast('Alternative proposed for '+id+'.');renderAll();}
+catch(e){showToast('Failed to update: '+e.message,'error');}
+}}
 
-        function openAltModal(id, container) {
-            document.getElementById('modal-appt-id').value = id;
-            document.getElementById('modal-container').textContent = 'Container: ' + container;
-            document.getElementById('altDate').value = '';
-            document.getElementById('altStart').value = '';
-            document.getElementById('altEnd').value = '';
-            document.getElementById('altComments').value = '';
-            document.getElementById('alt-modal').classList.add('visible');
-        }
+// Batch actions
+function toggleSelect(id){
+if(selectedIds.has(id))selectedIds.delete(id);else selectedIds.add(id);
+updateBatchBar();
+// Update checkbox visually
+const cb=document.getElementById('cb-'+id);
+if(cb)cb.checked=selectedIds.has(id);
+}
+function toggleSelectAll(checked){
+const ff=document.getElementById('facilityFilter').value;
+const pending=(ff?allAppts.filter(a=>a.facility===ff):allAppts).filter(a=>a.status==='Pending');
+if(checked){pending.forEach(a=>selectedIds.add(a.id));}else{selectedIds.clear();}
+updateBatchBar();
+renderAll();
+}
+function updateBatchBar(){
+const bar=document.getElementById('batch-bar');
+const count=document.getElementById('batch-count');
+if(selectedIds.size>0){bar.classList.add('visible');count.textContent=selectedIds.size;}
+else{bar.classList.remove('visible');}
+}
+function clearSelection(){selectedIds.clear();updateBatchBar();renderAll();}
 
-        function closeModal() {
-            document.getElementById('alt-modal').classList.remove('visible');
-        }
+async function batchConfirm(){
+const ids=[...selectedIds];
+if(ids.length===0)return;
+let success=0;
+for(const id of ids){
+const appt=allAppts.find(a=>a.id===id);
+if(appt&&appt.status==='Pending'){
+appt.status='Confirmed';appt.apexComments='Batch confirmed';
+try{await updateAppointmentRow(appt._rowIndex,appt);success++;}catch(e){}
+}}
+selectedIds.clear();updateBatchBar();
+showToast('✅ '+success+' appointment(s) confirmed.');
+renderAll();
+}
+async function batchReject(){
+const ids=[...selectedIds];
+if(ids.length===0)return;
+let success=0;
+for(const id of ids){
+const appt=allAppts.find(a=>a.id===id);
+if(appt&&appt.status==='Pending'){
+appt.status='Rejected';appt.apexComments='Batch rejected';
+try{await updateAppointmentRow(appt._rowIndex,appt);success++;}catch(e){}
+}}
+selectedIds.clear();updateBatchBar();
+showToast(success+' appointment(s) rejected.','warning');
+renderAll();
+}
 
-        async function submitAlternative() {
-            const id = document.getElementById('modal-appt-id').value;
-            const altDate = document.getElementById('altDate').value;
-            const altStart = document.getElementById('altStart').value;
-            const altEnd = document.getElementById('altEnd').value;
-            const comments = document.getElementById('altComments').value;
+function updateFacilityCounts(){
+const pending=allAppts.filter(a=>a.status==='Pending');
+const lgb=pending.filter(a=>a.facility==='APEX LGB').length;
+const ben=pending.filter(a=>a.facility==='APEX Bensenville').length;
+const dfw=pending.filter(a=>a.facility==='APEX DFW').length;
+document.getElementById('facility-counts').innerHTML=
+'<div class="fc-item"><span class="fc-dot" style="background:#ff9900;"></span>LGB <span class="fc-count">'+lgb+'</span></div>'+
+'<span class="fc-sep">|</span>'+
+'<div class="fc-item"><span class="fc-dot" style="background:#2563eb;"></span>Bensenville <span class="fc-count">'+ben+'</span></div>'+
+'<span class="fc-sep">|</span>'+
+'<div class="fc-item"><span class="fc-dot" style="background:#059669;"></span>DFW <span class="fc-count">'+dfw+'</span></div>';
+}
 
-            if (!altDate || !altStart || !altEnd) {
-                alert('Please fill in the alternative date and time.');
-                return;
-            }
+function renderAll(){
+const ff=document.getElementById('facilityFilter').value;
+const filtered=ff?allAppts.filter(a=>a.facility===ff):allAppts;
+const pending=filtered.filter(a=>a.status==='Pending');
+const processed=filtered.filter(a=>a.status!=='Pending');
+document.getElementById('pending-badge').textContent=pending.length;
+updateFacilityCounts();
 
-            const appt = allAppts.find(a => a.id === id);
-            if (appt) {
-                appt.status = 'Alternative Proposed';
-                appt.apexAlternativeDate = altDate;
-                appt.altStartTime = altStart;
-                appt.altEndTime = altEnd;
-                appt.apexComments = comments;
-                try {
-                    await updateAppointmentRow(appt._rowIndex, appt);
-                    closeModal();
-                    showBanner('Alternative proposed for ' + id + '.');
-                    renderAll();
-                } catch(e) { alert('Failed to update: ' + e.message); }
-            }
-        }
+const pDiv=document.getElementById('tab-pending');
+if(pending.length===0){
+pDiv.innerHTML='<div class="es"><div class="ei">✅</div><p>No pending appointment requests. All caught up.</p></div>';
+}else{
+pending.sort((a,b)=>new Date(a.requestedDate)-new Date(b.requestedDate));
+const allChecked=pending.every(a=>selectedIds.has(a.id));
+let h='<div class="tw"><div class="ts"><table><thead><tr><th style="width:36px;"><input type="checkbox" class="row-cb" '+(allChecked?'checked':'')+' onchange="toggleSelectAll(this.checked)"></th><th class="sticky-col">Actions</th><th>Appt ID</th><th>Facility</th><th>Container Number</th><th>Carrier SCAC</th><th>Carrier Name</th><th>Available for Pickup</th><th>Last Free Date</th><th>Requested Date</th><th>Start Time</th><th>End Time</th><th>Dray Notes</th><th>Submitted</th></tr></thead><tbody>';
+pending.forEach(a=>{
+const checked=selectedIds.has(a.id)?'checked':'';
+h+='<tr><td><input type="checkbox" class="row-cb" id="cb-'+a.id+'" '+checked+' onchange="toggleSelect(\''+a.id+'\')"></td><td class="sticky-col"><div class="ab"><button class="bs bc" onclick="openConfirmModal(\''+a.id+'\',\''+a.containerNumber+'\')">Confirm</button><button class="bs br" onclick="openRejectModal(\''+a.id+'\',\''+a.containerNumber+'\')">Reject</button><button class="bs ba" onclick="openAltModal(\''+a.id+'\',\''+a.containerNumber+'\')">Alternative</button></div></td><td style="font-weight:600;color:#1a1a2e;">'+a.id+'</td><td>'+(a.facility||'')+'</td><td style="font-weight:500;">'+a.containerNumber+'</td><td>'+a.carrierScac+'</td><td>'+a.carrierName+'</td><td>'+a.availableDate+'</td><td>'+a.lastFreeDate+'</td><td style="font-weight:500;">'+a.requestedDate+'</td><td>'+a.startTime+'</td><td>'+a.endTime+'</td><td style="white-space:normal;max-width:150px;">'+(a.drayNotes||'-')+'</td><td style="color:#9ca3af;">'+formatDate(a.submittedAt)+'</td></tr>';
+});
+h+='</tbody></table></div></div>';
+pDiv.innerHTML=h;
+}
 
-        function renderAll() {
-            const facilityFilter = document.getElementById('facilityFilter').value;
-            const filtered = facilityFilter ? allAppts.filter(a => a.facility === facilityFilter) : allAppts;
-            const pending = filtered.filter(a => a.status === 'Pending');
-            const processed = filtered.filter(a => a.status !== 'Pending');
+const prDiv=document.getElementById('tab-processed');
+if(processed.length===0){
+prDiv.innerHTML='<div class="es"><div class="ei">📋</div><p>No processed appointments yet.</p></div>';
+}else{
+processed.sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
+let h='<div class="tw"><div class="ts"><table><thead><tr><th>Appt ID</th><th>Facility</th><th>Container Number</th><th>Carrier SCAC</th><th>Carrier Name</th><th>Requested Date</th><th>Start - End</th><th>Decision</th><th>Alternative Date</th><th>Alt Time</th><th>Comments</th></tr></thead><tbody>';
+processed.forEach(a=>{
+const sc=a.status==='Confirmed'?'sc':a.status==='Rejected'?'sr':'sa';
+const sl=a.status==='Alternative Proposed'?'Alt. Proposed':a.status;
+h+='<tr><td style="font-weight:600;color:#1a1a2e;">'+a.id+'</td><td>'+(a.facility||'')+'</td><td style="font-weight:500;">'+a.containerNumber+'</td><td>'+a.carrierScac+'</td><td>'+a.carrierName+'</td><td style="font-weight:500;">'+a.requestedDate+'</td><td>'+a.startTime+' – '+a.endTime+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td>'+(a.apexAlternativeDate||'-')+'</td><td>'+(a.altStartTime&&a.altEndTime?a.altStartTime+' – '+a.altEndTime:'-')+'</td><td style="white-space:normal;max-width:200px;">'+(a.apexComments||'-')+'</td></tr>';
+});
+h+='</tbody></table></div></div>';
+prDiv.innerHTML=h;
+}
+}
 
-            document.getElementById('pending-badge').textContent = pending.length;
+async function loadData(){
+document.getElementById('loading-state').style.display='flex';
+document.getElementById('tab-pending').style.display='none';
+document.getElementById('tab-processed').style.display='none';
+try{
+allAppts=await getAllAppointments();
+document.getElementById('loading-state').style.display='none';
+document.getElementById('tab-pending').style.display='';
+document.getElementById('tab-processed').style.display='';
+document.querySelectorAll('.tc')[0].classList.add('active');
+renderAll();
+}catch(e){
+document.getElementById('loading-state').innerHTML='<div style="font-size:48px;">⚠️</div><div style="margin-top:12px;color:#6b7280;font-size:13px;font-weight:500;">Failed to load appointments. Please refresh.</div>';
+showToast('Failed to load: '+e.message,'error',6000);
+}
+}
 
-            const pTbody = document.getElementById('pending-tbody');
-            const pEmpty = document.getElementById('pending-empty');
-            const pWrapper = document.querySelector('#tab-pending .table-wrapper');
-            pTbody.innerHTML = '';
+// Auto-refresh every 45 seconds
+function startAutoRefresh(){
+if(refreshTimer)clearInterval(refreshTimer);
+refreshTimer=setInterval(async()=>{
+try{
+allAppts=await getAllAppointments();
+renderAll();
+}catch(e){/* silent fail on auto-refresh */}
+},45000);
+}
 
-            if (pending.length === 0) {
-                pEmpty.style.display = 'block';
-                pWrapper.style.display = 'none';
-            } else {
-                pEmpty.style.display = 'none';
-                pWrapper.style.display = '';
-                pending.sort((a, b) => new Date(a.requestedDate) - new Date(b.requestedDate));
-                pending.forEach(a => {
-                    const row = document.createElement('tr');
-                    row.innerHTML =
-                        '<td>' + a.id + '</td>' +
-                        '<td>' + (a.facility || '') + '</td>' +
-                        '<td>' + a.containerNumber + '</td>' +
-                        '<td>' + a.carrierScac + '</td>' +
-                        '<td>' + a.carrierName + '</td>' +
-                        '<td>' + a.availableDate + '</td>' +
-                        '<td>' + a.lastFreeDate + '</td>' +
-                        '<td>' + a.requestedDate + '</td>' +
-                        '<td>' + a.startTime + '</td>' +
-                        '<td>' + a.endTime + '</td>' +
-                        '<td style="white-space:normal;max-width:150px;">' + (a.drayNotes || '-') + '</td>' +
-                        '<td>' + formatDate(a.submittedAt) + '</td>' +
-                        '<td><div class="action-btns">' +
-                            '<button class="btn-sm btn-confirm" onclick="confirmAppt(\'' + a.id + '\')">Confirm</button>' +
-                            '<button class="btn-sm btn-reject" onclick="rejectAppt(\'' + a.id + '\')">Reject</button>' +
-                            '<button class="btn-sm btn-alt" onclick="openAltModal(\'' + a.id + '\',\'' + a.containerNumber + '\')">Alternative</button>' +
-                        '</div></td>';
-                    pTbody.appendChild(row);
-                });
-            }
+// Keyboard shortcut: Enter to confirm focused row
+document.addEventListener('keydown',function(e){
+if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey){
+const active=document.activeElement;
+if(active&&active.classList.contains('row-cb')&&active.id.startsWith('cb-')){
+const id=active.id.replace('cb-','');
+const appt=allAppts.find(a=>a.id===id);
+if(appt&&appt.status==='Pending'){
+openConfirmModal(id,appt.containerNumber);
+e.preventDefault();
+}
+}
+}
+});
 
-            const prTbody = document.getElementById('processed-tbody');
-            const prEmpty = document.getElementById('processed-empty');
-            const prWrapper = document.querySelector('#tab-processed .table-wrapper');
-            prTbody.innerHTML = '';
-
-            if (processed.length === 0) {
-                prEmpty.style.display = 'block';
-                prWrapper.style.display = 'none';
-            } else {
-                prEmpty.style.display = 'none';
-                prWrapper.style.display = '';
-                processed.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-                processed.forEach(a => {
-                    const statusClass = a.status === 'Alternative Proposed' ? 'Alternative' : a.status;
-                    const row = document.createElement('tr');
-                    row.innerHTML =
-                        '<td>' + a.id + '</td>' +
-                        '<td>' + (a.facility || '') + '</td>' +
-                        '<td>' + a.containerNumber + '</td>' +
-                        '<td>' + a.carrierScac + '</td>' +
-                        '<td>' + a.carrierName + '</td>' +
-                        '<td>' + a.requestedDate + '</td>' +
-                        '<td>' + a.startTime + ' - ' + a.endTime + '</td>' +
-                        '<td><span class="status-badge status-' + statusClass + '">' + a.status + '</span></td>' +
-                        '<td>' + (a.apexAlternativeDate || '-') + '</td>' +
-                        '<td>' + (a.altStartTime && a.altEndTime ? a.altStartTime + ' - ' + a.altEndTime : '-') + '</td>' +
-                        '<td style="white-space:normal;max-width:200px;">' + (a.apexComments || '-') + '</td>';
-                    prTbody.appendChild(row);
-                });
-            }
-        }
-
-        async function loadData() {
-            allAppts = await getAllAppointments();
-            renderAll();
-        }
-
-        window.addEventListener('load', loadData);
-    </script>
+window.addEventListener('load',function(){loadData();startAutoRefresh();});
+</script>
 </body>
 </html>

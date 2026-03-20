@@ -4,73 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apex Dray Appointment Scheduling</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 13px; background: #fff; color: #333; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; background: #f4f6f8; color: #1a1a2e; }
 
+        /* Header */
         .header {
-            background-color: #232f3e; color: white; padding: 0 20px;
-            display: flex; justify-content: space-between; align-items: center; height: 52px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #232f3e 100%);
+            color: white; padding: 0 28px;
+            display: flex; justify-content: space-between; align-items: center; height: 56px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        .header-left { display: flex; align-items: center; gap: 20px; }
-        .logo { background-color: #ff9900; color: white; font-weight: bold; font-size: 13px; padding: 6px 16px; border-radius: 20px; }
-        .nav a { color: white; text-decoration: none; font-size: 12px; padding: 14px 12px; }
-        .nav a:hover { background-color: #37475a; }
-        .nav a.active { border-bottom: 3px solid #ff9900; }
-        .header-right { color: white; font-size: 12px; display: flex; align-items: center; gap: 8px; }
-        .user-icon { width: 28px; height: 28px; background: #37475a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .header-left { display: flex; align-items: center; gap: 24px; }
+        .logo {
+            background: linear-gradient(135deg, #ff9900, #ffad33);
+            color: white; font-weight: 700; font-size: 13px; padding: 6px 18px;
+            border-radius: 20px; letter-spacing: 0.3px;
+        }
+        .nav { display: flex; }
+        .nav a {
+            color: rgba(255,255,255,0.75); text-decoration: none; font-size: 12px;
+            padding: 16px 14px; font-weight: 500; transition: all 0.2s;
+        }
+        .nav a:hover { color: white; background: rgba(255,255,255,0.08); }
+        .nav a.active { color: white; border-bottom: 3px solid #ff9900; }
+        .header-right { color: rgba(255,255,255,0.8); font-size: 11px; }
+        .header-right a { color: #ffad33; text-decoration: none; font-weight: 500; }
+        .header-right a:hover { text-decoration: underline; }
 
-        .main { padding: 24px 32px; max-width: 900px; }
-        .page-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; color: #111; }
-        .page-subtitle { font-size: 13px; color: #666; margin-bottom: 24px; }
+        /* Main content */
+        .main { padding: 28px 32px; max-width: 1200px; margin: 0 auto; }
+        .main-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+        .main-left { min-width: 0; }
+        .main-right { position: sticky; top: 24px; }
 
-        .form-section { margin-bottom: 20px; }
-        .form-section-title { font-size: 14px; font-weight: bold; color: #232f3e; margin-bottom: 12px; border-bottom: 2px solid #ff9900; padding-bottom: 4px; }
+        .page-header { margin-bottom: 24px; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; }
+        .page-subtitle { font-size: 13px; color: #6b7280; margin-top: 4px; font-weight: 400; }
+
+        /* Progress Indicator */
+        .progress-bar {
+            display: flex; align-items: center; justify-content: center; gap: 0;
+            margin-bottom: 28px; padding: 16px 20px; background: white; border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .progress-step {
+            display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+            border-radius: 20px; font-size: 12px; font-weight: 500; color: #9ca3af;
+            transition: all 0.3s;
+        }
+        .progress-step .step-num {
+            width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-size: 11px; font-weight: 700;
+            background: #e5e7eb; color: #9ca3af; transition: all 0.3s;
+        }
+        .progress-step.active { color: #1a1a2e; }
+        .progress-step.active .step-num { background: #ff9900; color: white; }
+        .progress-step.completed { color: #059669; }
+        .progress-step.completed .step-num { background: #059669; color: white; }
+        .progress-connector { width: 32px; height: 2px; background: #e5e7eb; transition: background 0.3s; }
+        .progress-connector.completed { background: #059669; }
+
+        /* Form sections */
+        .form-section {
+            background: white; border-radius: 10px; padding: 20px 24px; margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            transition: border-color 0.3s;
+            border: 2px solid transparent;
+        }
+        .form-section.section-active { border-color: #ff9900; }
+        .form-section-title {
+            font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 16px;
+            padding-bottom: 8px; border-bottom: 2px solid #ff9900;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-group { display: flex; flex-direction: column; gap: 4px; }
         .form-group.full { grid-column: 1 / -1; }
-        .form-group label { font-size: 12px; font-weight: bold; color: #333; }
-        .form-group label .req { color: #d32f2f; }
+        .form-group label { font-size: 12px; font-weight: 600; color: #374151; }
+        .form-group label .req { color: #dc2626; }
         .form-group input, .form-group select, .form-group textarea {
-            padding: 8px 10px; border: 1px solid #aab7b8; border-radius: 4px; font-size: 13px; color: #333;
+            padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 6px;
+            font-size: 13px; color: #374151; background: #f9fafb; font-family: inherit;
+            transition: all 0.15s;
         }
         .form-group textarea { resize: vertical; min-height: 60px; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            border-color: #ff9900; outline: none; box-shadow: 0 0 0 2px rgba(255,153,0,0.15);
+            border-color: #ff9900; outline: none; box-shadow: 0 0 0 3px rgba(255,153,0,0.1); background: white;
         }
+        .form-group input.input-error { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.1); }
 
         .btn-submit {
-            padding: 10px 32px; background: #ff6600; color: white; border: none;
-            border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 20px;
+            padding: 11px 32px; background: #1a1a2e; color: white; border: none;
+            border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+            margin-top: 20px; font-family: inherit; transition: all 0.15s;
+            letter-spacing: 0.2px;
         }
-        .btn-submit:hover { background: #e55b00; }
+        .btn-submit:hover { background: #2d2d4e; }
 
-        .banner {
-            padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 13px;
-            display: none; align-items: center; gap: 8px;
+        .info-note { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+
+        /* Toast notifications */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            padding: 14px 20px; border-radius: 10px; font-size: 13px; font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px;
+            animation: toastIn 0.35s ease-out; min-width: 300px; max-width: 440px;
         }
-        .banner.success { background: #e8f5e8; border: 1px solid #067d62; color: #067d62; }
-        .banner.error { background: #fce4e4; border: 1px solid #d32f2f; color: #d32f2f; }
-        .banner.visible { display: flex; }
-
-        .info-note { font-size: 11px; color: #888; margin-top: 4px; }
+        .toast.success { background: #065f46; color: white; }
+        .toast.error { background: #991b1b; color: white; }
+        .toast.warning { background: #92400e; color: white; }
+        .toast-close { background: none; border: none; color: inherit; cursor: pointer; font-size: 16px; margin-left: auto; opacity: 0.7; padding: 0 0 0 12px; }
+        .toast-close:hover { opacity: 1; }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
 
         /* Mobile responsive */
         @media (max-width: 768px) {
-            .header { flex-direction: column; height: auto; padding: 10px 12px; gap: 8px; }
-            .header-left { flex-direction: column; gap: 8px; width: 100%; align-items: flex-start; }
-            .nav { display: flex; flex-wrap: wrap; gap: 0; }
-            .nav a { padding: 8px 10px; font-size: 12px; }
-            .header-right { font-size: 11px; width: 100%; justify-content: center; text-align: center; }
+            .header { flex-direction: column; height: auto; padding: 12px 16px; gap: 10px; }
+            .header-left { flex-direction: column; gap: 10px; width: 100%; align-items: flex-start; }
+            .nav { display: flex; flex-wrap: wrap; }
+            .nav a { padding: 8px 10px; }
+            .header-right { font-size: 11px; width: 100%; text-align: center; }
             .main { padding: 16px 14px; }
             .page-title { font-size: 18px; }
             .form-grid { grid-template-columns: 1fr; gap: 12px; }
             .form-group.full { grid-column: 1; }
+            .form-section { padding: 16px; }
             .btn-submit { width: 100%; padding: 14px; font-size: 16px; }
-            .banner { font-size: 12px; }
             .form-group select { font-size: 14px; }
             .form-group input, .form-group textarea { font-size: 14px; }
+            .progress-bar { flex-wrap: wrap; gap: 4px; padding: 12px; }
+            .progress-connector { width: 16px; }
+            .progress-step { padding: 4px 8px; font-size: 11px; }
+            .toast-container { bottom: 12px; right: 12px; left: 12px; }
+            .toast { min-width: auto; }
+            .main-layout { grid-template-columns: 1fr; }
+            .main-right { position: static; }
         }
     </style>
 </head>
@@ -85,19 +157,32 @@
             </nav>
         </div>
         <div class="header-right">
-            <span>For any issues or questions contact <a href="mailto:hsubrian@amazon.com" style="color:#ff9900; text-decoration:none;">hsubrian@amazon.com</a></span>
+            <span>Questions? Contact <a href="mailto:hsubrian@amazon.com">hsubrian@amazon.com</a></span>
         </div>
     </div>
 
     <div class="main">
-        <h1 class="page-title">Schedule Delivery Appointment</h1>
-        <p class="page-subtitle">Request a delivery appointment at an Apex facility. Apex will review and confirm your request.</p>
+        <div class="page-header">
+            <h1 class="page-title">Schedule Delivery Appointment</h1>
+            <p class="page-subtitle">Request a delivery appointment at an Apex facility. Apex will review and confirm your request.</p>
+        </div>
 
-        <div id="success-banner" class="banner success">✅ Appointment request submitted successfully. Apex will review and respond shortly.</div>
-        <div id="error-banner" class="banner error"></div>
+        <div class="main-layout">
+        <div class="main-left">
+
+        <!-- Progress Indicator -->
+        <div class="progress-bar">
+            <div class="progress-step active" id="step-1"><span class="step-num">1</span> Facility</div>
+            <div class="progress-connector" id="conn-1"></div>
+            <div class="progress-step" id="step-2"><span class="step-num">2</span> Container Info</div>
+            <div class="progress-connector" id="conn-2"></div>
+            <div class="progress-step" id="step-3"><span class="step-num">3</span> Dates</div>
+            <div class="progress-connector" id="conn-3"></div>
+            <div class="progress-step" id="step-4"><span class="step-num">4</span> Review</div>
+        </div>
 
         <form id="appt-form" onsubmit="submitAppointment(event)">
-            <div class="form-section">
+            <div class="form-section" id="section-1">
                 <div class="form-section-title">Apex Facility</div>
                 <div class="form-grid">
                     <div class="form-group full">
@@ -113,12 +198,13 @@
                 </div>
             </div>
 
-            <div class="form-section">
+            <div class="form-section" id="section-2">
                 <div class="form-section-title">Container & Carrier Information</div>
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Container Number <span class="req">*</span></label>
-                        <input type="text" id="containerNumber" placeholder="e.g. CAIU4628234" required>
+                        <input type="text" id="containerNumber" placeholder="e.g. CAIU4628234" required maxlength="11">
+                        <div id="container-info" class="info-note"></div>
                     </div>
                     <div class="form-group">
                         <label>Dray Carrier SCAC <span class="req">*</span></label>
@@ -132,7 +218,7 @@
                     </div>
                     <div class="form-group">
                         <label>Carrier Name</label>
-                        <input type="text" id="carrierName" readonly placeholder="Auto-populated from SCAC">
+                        <input type="text" id="carrierName" readonly placeholder="Auto-populated from SCAC" style="cursor:not-allowed;">
                     </div>
                     <div class="form-group">
                         <label>Driver Name</label>
@@ -141,7 +227,7 @@
                 </div>
             </div>
 
-            <div class="form-section">
+            <div class="form-section" id="section-3">
                 <div class="form-section-title">Container Dates</div>
                 <div class="form-grid">
                     <div class="form-group">
@@ -162,7 +248,7 @@
                 </div>
             </div>
 
-            <div class="form-section">
+            <div class="form-section" id="section-4">
                 <div class="form-section-title">Requested Delivery at Apex</div>
                 <div class="form-grid">
                     <div class="form-group">
@@ -176,13 +262,13 @@
                     </div>
                     <div class="form-group">
                         <label>Requested End Time <span class="req">*</span></label>
-                        <input type="time" id="endTime" required readonly style="background:#f5f5f5; cursor:not-allowed;">
+                        <input type="time" id="endTime" required readonly style="background:#f0f1f3; cursor:not-allowed;">
                         <div id="endtime-info" class="info-note"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="form-section">
+            <div class="form-section" id="section-5">
                 <div class="form-section-title">Additional Notes</div>
                 <div class="form-grid">
                     <div class="form-group full">
@@ -194,9 +280,123 @@
 
             <button type="submit" class="btn-submit">Submit Appointment Request</button>
         </form>
+        </div><!-- end main-left -->
+
+        <div class="main-right">
+        <!-- SOP Flow -->
+        <div style="background:white;border-radius:10px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);border-left:4px solid #ff9900;">
+            <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="document.getElementById('sop-details').style.display=document.getElementById('sop-details').style.display==='none'?'block':'none';this.querySelector('.sop-arrow').textContent=document.getElementById('sop-details').style.display==='none'?'▶':'▼'">
+                <div style="font-size:13px;font-weight:700;color:#1a1a2e;text-transform:uppercase;letter-spacing:0.5px;">📋 How Appointment Scheduling Works</div>
+                <span class="sop-arrow" style="color:#9ca3af;font-size:12px;">▶</span>
+            </div>
+            <div id="sop-details" style="margin-top:16px;display:none;">
+                <div style="display:flex;flex-direction:column;gap:0;position:relative;">
+                    <div style="display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;">
+                        <div style="min-width:28px;height:28px;border-radius:50%;background:#ff9900;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">1</div>
+                        <div><div style="font-size:12px;font-weight:600;color:#1a1a2e;">Carrier submits appointment request by 9 AM</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">Must be submitted within 24 hours of receiving the Container Available for Pickup notification.</div></div>
+                    </div>
+                    <div style="display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;">
+                        <div style="min-width:28px;height:28px;border-radius:50%;background:#059669;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">2</div>
+                        <div><div style="font-size:12px;font-weight:600;color:#1a1a2e;">Apex confirms or proposes alternative by 12 PM</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">Apex responds no later than the next business day (Mon–Fri, 8 AM – 5 PM local). If an alternative is offered, it must be on or before the Last Free Date.</div></div>
+                    </div>
+                    <div style="display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;">
+                        <div style="min-width:28px;height:28px;border-radius:50%;background:#2563eb;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">3</div>
+                        <div><div style="font-size:12px;font-weight:600;color:#1a1a2e;">Carrier reviews confirmation by 3 PM</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">Check the <a href="apex-carrier-dashboard.html" style="color:#2563eb;text-decoration:none;font-weight:600;">My Appointments</a> page for status. If confirmed, you're all set. If an alternative was proposed, proceed to step 4.</div></div>
+                    </div>
+                    <div style="display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;">
+                        <div style="min-width:28px;height:28px;border-radius:50%;background:#7c3aed;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">4</div>
+                        <div><div style="font-size:12px;font-weight:600;color:#1a1a2e;">Carrier reschedules and resubmits by 5 PM</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">Reschedule the terminal appointment to match Apex's alternative (or next available date), then submit a new request here with the updated dates.</div></div>
+                    </div>
+                    <div style="display:flex;gap:14px;align-items:flex-start;">
+                        <div style="min-width:28px;height:28px;border-radius:50%;background:#1a1a2e;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">5</div>
+                        <div><div style="font-size:12px;font-weight:600;color:#1a1a2e;">Apex closes out open appointments by 5 PM</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">All remaining open requests are reviewed and finalized at end of day.</div></div>
+                    </div>
+                </div>
+                <div style="margin-top:14px;padding:10px 14px;background:#fef3c7;border-radius:8px;font-size:11px;color:#92400e;">
+                    <span style="font-weight:700;">⚠️ Adhoc changes:</span> Must be requested ≥4 hours before the scheduled appointment via email to <a href="mailto:amazon-oi@apexglobe.com" style="color:#92400e;font-weight:600;">amazon-oi@apexglobe.com</a> and <a href="mailto:AmazonUSKAM@apexglobe.com" style="color:#92400e;font-weight:600;">AmazonUSKAM@apexglobe.com</a>, CC <a href="mailto:iypoorni@amazon.com" style="color:#92400e;">iypoorni@</a> and <a href="mailto:hsubrian@amazon.com" style="color:#92400e;">hsubrian@</a>. Propose 2+ alternative time slots.
+                </div>
+            </div>
+        </div>
+        </div><!-- end main-right -->
+        </div><!-- end main-layout -->
     </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
     <script src="apex-config.js"></script>
     <script>
+        // Toast notification system
+        function showToast(message, type = 'success', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.innerHTML = '<span>' + message + '</span><button class="toast-close" onclick="this.parentElement.style.animation=\'toastOut 0.3s ease-in forwards\';setTimeout(()=>this.parentElement.remove(),300)">&times;</button>';
+            container.appendChild(toast);
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.style.animation = 'toastOut 0.3s ease-in forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, duration);
+        }
+
+        // Progress indicator logic
+        function updateProgress() {
+            const facility = document.getElementById('facility').value;
+            const container = document.getElementById('containerNumber').value.trim();
+            const scac = document.getElementById('carrierScac').value;
+            const availDate = document.getElementById('availableDate').value;
+            const lastFree = document.getElementById('lastFreeDate').value;
+            const reqDate = document.getElementById('requestedDate').value;
+            const startT = document.getElementById('startTime').value;
+
+            // Step 1: Facility selected
+            const s1 = !!facility;
+            // Step 2: Container + SCAC filled
+            const s2 = s1 && !!container && !!scac;
+            // Step 3: All dates filled
+            const s3 = s2 && !!availDate && !!lastFree && !!reqDate && !!startT;
+            // Step 4: Ready for review (all required done)
+            const s4 = s3;
+
+            const steps = [s1, s2, s3, s4];
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById('step-' + i);
+                const connEl = document.getElementById('conn-' + (i - 1));
+                stepEl.classList.remove('active', 'completed');
+                if (connEl) connEl.classList.remove('completed');
+
+                if (i <= steps.filter(Boolean).length) {
+                    if (i < steps.filter(Boolean).length + 1) {
+                        stepEl.classList.add('completed');
+                        if (connEl) connEl.classList.add('completed');
+                    }
+                }
+            }
+            // Find current active step
+            const completedCount = steps.filter(Boolean).length;
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById('step-' + i);
+                const connEl = document.getElementById('conn-' + (i - 1));
+                stepEl.classList.remove('active', 'completed');
+                if (connEl) connEl.classList.remove('completed');
+            }
+            for (let i = 1; i <= completedCount; i++) {
+                document.getElementById('step-' + i).classList.add('completed');
+                if (i > 1) document.getElementById('conn-' + (i - 1)).classList.add('completed');
+            }
+            if (completedCount < 4) {
+                document.getElementById('step-' + (completedCount + 1)).classList.add('active');
+            }
+        }
+
+        // Attach progress updates to all form fields
+        ['facility','containerNumber','carrierScac','availableDate','lastFreeDate','requestedDate','startTime'].forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('change', updateProgress);
+            el.addEventListener('input', updateProgress);
+        });
+
         const scacMap = {
             'ATMI': 'Atlas Marine LLC',
             'RDXY': 'RoadEx America',
@@ -204,35 +404,10 @@
             'DRAY': 'Other'
         };
 
-        // Operational hours per facility. Days: 0=Sun,1=Mon,...,6=Sat
         const facilityHours = {
-            'APEX LGB': {
-                0: null, // Sunday closed
-                1: { open: '07:30', close: '22:30' },
-                2: { open: '07:30', close: '22:30' },
-                3: { open: '07:30', close: '22:30' },
-                4: { open: '07:30', close: '22:30' },
-                5: { open: '07:30', close: '22:30' },
-                6: null  // Saturday closed
-            },
-            'APEX Bensenville': {
-                0: { open: '07:00', close: '17:00' },
-                1: { open: '07:00', close: '17:00' },
-                2: { open: '07:00', close: '17:00' },
-                3: { open: '07:00', close: '17:00' },
-                4: { open: '07:00', close: '17:00' },
-                5: { open: '07:00', close: '17:00' },
-                6: { open: '07:00', close: '17:00' }
-            },
-            'APEX DFW': {
-                0: { open: '09:00', close: '17:00' },
-                1: { open: '09:00', close: '17:00' },
-                2: { open: '09:00', close: '17:00' },
-                3: { open: '09:00', close: '17:00' },
-                4: { open: '09:00', close: '17:00' },
-                5: { open: '09:00', close: '17:00' },
-                6: { open: '09:00', close: '17:00' }
-            }
+            'APEX LGB': { 0:null, 1:{open:'07:30',close:'22:30'}, 2:{open:'07:30',close:'22:30'}, 3:{open:'07:30',close:'22:30'}, 4:{open:'07:30',close:'22:30'}, 5:{open:'07:30',close:'22:30'}, 6:null },
+            'APEX Bensenville': { 0:{open:'07:00',close:'17:00'}, 1:{open:'07:00',close:'17:00'}, 2:{open:'07:00',close:'17:00'}, 3:{open:'07:00',close:'17:00'}, 4:{open:'07:00',close:'17:00'}, 5:{open:'07:00',close:'17:00'}, 6:{open:'07:00',close:'17:00'} },
+            'APEX DFW': { 0:{open:'09:00',close:'17:00'}, 1:{open:'09:00',close:'17:00'}, 2:{open:'09:00',close:'17:00'}, 3:{open:'09:00',close:'17:00'}, 4:{open:'09:00',close:'17:00'}, 5:{open:'09:00',close:'17:00'}, 6:{open:'09:00',close:'17:00'} }
         };
 
         const hoursDisplay = {
@@ -245,52 +420,98 @@
             const info = document.getElementById('hours-info');
             if (this.value && hoursDisplay[this.value]) {
                 info.textContent = '🕐 Operational hours: ' + hoursDisplay[this.value];
-            } else {
-                info.textContent = '';
-            }
+            } else { info.textContent = ''; }
         });
 
         document.getElementById('carrierScac').addEventListener('change', function() {
             document.getElementById('carrierName').value = scacMap[this.value] || '';
         });
 
-        // Set min date to today on all date inputs
+        // Container number validation — auto-uppercase, validate 4 letters + 7 digits
+        document.getElementById('containerNumber').addEventListener('input', function() {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            const infoEl = document.getElementById('container-info');
+            const val = this.value;
+            infoEl.style.color = '';
+            infoEl.textContent = '';
+            this.classList.remove('input-error');
+            if (!val) return;
+            const valid = /^[A-Z]{4}\d{7}$/.test(val);
+            if (val.length === 11 && valid) {
+                infoEl.style.color = '#059669';
+                infoEl.textContent = '✅ Valid container format';
+            } else if (val.length > 0 && val.length < 11) {
+                infoEl.style.color = '#6b7280';
+                infoEl.textContent = 'Format: 4 letters + 7 digits (e.g. CAIU4628234)';
+            } else if (val.length >= 11 && !valid) {
+                infoEl.style.color = '#dc2626';
+                infoEl.textContent = '❌ Invalid format — must be 4 letters followed by 7 digits';
+                this.classList.add('input-error');
+            }
+        });
+
         function getTodayStr() {
             const d = new Date();
             return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
         }
+        function getDateOffset(days) {
+            const d = new Date();
+            d.setDate(d.getDate() + days);
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
         function setMinDates() {
             const today = getTodayStr();
-            ['availableDate','portApptDate','lastFreeDate','requestedDate'].forEach(id => {
-                document.getElementById(id).setAttribute('min', today);
-            });
+            // Available for Pickup: allow up to 7 days in the past
+            document.getElementById('availableDate').setAttribute('min', getDateOffset(-7));
+            // Port Appointment Date: allow up to 3 days in the past
+            document.getElementById('portApptDate').setAttribute('min', getDateOffset(-3));
+            // Last Free Date: no past restriction (follows available date logic)
+            document.getElementById('lastFreeDate').removeAttribute('min');
+            // Requested Delivery Date: today and onward only
+            document.getElementById('requestedDate').setAttribute('min', today);
         }
         setMinDates();
 
-        // Live past-date validation on each date field
         function checkPastDate(inputId) {
             const val = document.getElementById(inputId).value;
             const infoEl = document.getElementById(inputId + '-info');
             if (!infoEl) return;
-            infoEl.textContent = '';
-            infoEl.style.color = '';
+            infoEl.textContent = ''; infoEl.style.color = '';
             if (!val) return;
-            if (val < getTodayStr()) {
-                infoEl.style.color = '#d32f2f';
-                infoEl.textContent = '❌ This date is in the past. Please select today or a future date.';
+            const today = getTodayStr();
+            if (inputId === 'availableDate') {
+                const minDate = getDateOffset(-7);
+                if (val < minDate) {
+                    infoEl.style.color = '#d32f2f';
+                    infoEl.textContent = '❌ Available for Pickup date cannot be more than 7 days in the past.';
+                } else if (val < today) {
+                    infoEl.style.color = '#e65100';
+                    infoEl.textContent = '⚠️ This date is in the past — late submission accepted (within 7-day window).';
+                }
+            } else if (inputId === 'portApptDate') {
+                const minDate = getDateOffset(-3);
+                if (val < minDate) {
+                    infoEl.style.color = '#d32f2f';
+                    infoEl.textContent = '❌ Port Appointment Date cannot be more than 3 days in the past.';
+                } else if (val < today) {
+                    infoEl.style.color = '#e65100';
+                    infoEl.textContent = '⚠️ This date is in the past — late submission accepted (within 3-day window).';
+                }
+            } else {
+                if (val < today) {
+                    infoEl.style.color = '#d32f2f';
+                    infoEl.textContent = '❌ This date is in the past. Please select today or a future date.';
+                }
             }
         }
         ['availableDate','portApptDate','lastFreeDate'].forEach(id => {
             document.getElementById(id).addEventListener('change', function() { checkPastDate(id); });
         });
 
-        // Last Free Date vs Available Date — warn if more than 5 days apart
         function validateLastFreeDate() {
             const infoEl = document.getElementById('lastFreeDate-info');
             const avail = document.getElementById('availableDate').value;
             const lfd = document.getElementById('lastFreeDate').value;
-            // Don't overwrite a past-date error
-            if (lfd && lfd < getTodayStr()) return;
             if (infoEl.textContent && !infoEl.textContent.includes('days')) infoEl.textContent = '';
             if (!avail || !lfd) { if (infoEl.textContent.includes('days')) infoEl.textContent = ''; return; }
             const availMs = new Date(avail + 'T00:00:00').getTime();
@@ -309,9 +530,7 @@
         }
         document.getElementById('lastFreeDate').addEventListener('change', validateLastFreeDate);
         document.getElementById('availableDate').addEventListener('change', validateLastFreeDate);
-        // requestedDate already has a change listener — we'll add past check there too
 
-        // Get the facility's hours for the currently selected date
         function getSelectedDayHours() {
             const facility = document.getElementById('facility').value;
             const dateStr = document.getElementById('requestedDate').value;
@@ -321,19 +540,15 @@
             return hours ? hours[date.getUTCDay()] : null;
         }
 
-        // Set end time = start + 4h, clamped to facility close
         function setEndTimeFromStart() {
             const startVal = document.getElementById('startTime').value;
             const infoEl = document.getElementById('endtime-info');
-            infoEl.textContent = '';
-            infoEl.style.color = '';
+            infoEl.textContent = ''; infoEl.style.color = '';
             if (!startVal) return;
             const [h, m] = startVal.split(':').map(Number);
-            let endH = h + 4;
-            let endM = m;
-            let naturalEnd = String(endH).padStart(2, '0') + ':' + String(endM).padStart(2, '0');
+            let endH = h + 4, endM = m;
+            let naturalEnd = String(endH).padStart(2,'0') + ':' + String(endM).padStart(2,'0');
             let endStr = naturalEnd;
-
             const dayHours = getSelectedDayHours();
             const facility = document.getElementById('facility').value;
             if (dayHours && naturalEnd > dayHours.close) {
@@ -348,21 +563,16 @@
             document.getElementById('endTime').value = endStr;
         }
 
-        // Also enforce start time within open hours and set min/max on inputs
         function updateTimeConstraints() {
             const startEl = document.getElementById('startTime');
             const endEl = document.getElementById('endTime');
             const dayHours = getSelectedDayHours();
             if (dayHours) {
-                startEl.min = dayHours.open;
-                startEl.max = dayHours.close;
-                endEl.min = dayHours.open;
-                endEl.max = dayHours.close;
+                startEl.min = dayHours.open; startEl.max = dayHours.close;
+                endEl.min = dayHours.open; endEl.max = dayHours.close;
             } else {
-                startEl.removeAttribute('min');
-                startEl.removeAttribute('max');
-                endEl.removeAttribute('min');
-                endEl.removeAttribute('max');
+                startEl.removeAttribute('min'); startEl.removeAttribute('max');
+                endEl.removeAttribute('min'); endEl.removeAttribute('max');
             }
         }
 
@@ -374,42 +584,25 @@
             if (!hours) return null;
             const dayHours = hours[day];
             const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-
-            if (!dayHours) {
-                return facility + ' is closed on ' + dayNames[day] + '. Please select a different date.';
-            }
-            if (startTime < dayHours.open) {
-                return facility + ' does not open until ' + dayHours.open + ' on ' + dayNames[day] + '.';
-            }
-            if (startTime >= dayHours.close) {
-                return facility + ' closes at ' + dayHours.close + ' on ' + dayNames[day] + '. Start time must be before closing.';
-            }
-            if (endTime && endTime > dayHours.close) {
-                return 'Requested end time (' + endTime + ') is past ' + facility + ' closing time (' + dayHours.close + '). Please adjust.';
-            }
-            if (endTime && endTime <= startTime) {
-                return 'End time must be after start time.';
-            }
+            if (!dayHours) return facility + ' is closed on ' + dayNames[day] + '. Please select a different date.';
+            if (startTime < dayHours.open) return facility + ' does not open until ' + dayHours.open + ' on ' + dayNames[day] + '.';
+            if (startTime >= dayHours.close) return facility + ' closes at ' + dayHours.close + ' on ' + dayNames[day] + '. Start time must be before closing.';
+            if (endTime && endTime > dayHours.close) return 'Requested end time (' + endTime + ') is past ' + facility + ' closing time (' + dayHours.close + '). Please adjust.';
+            if (endTime && endTime <= startTime) return 'End time must be after start time.';
             return null;
         }
 
-        document.getElementById('startTime').addEventListener('change', function() {
-            setEndTimeFromStart();
-        });
+        document.getElementById('startTime').addEventListener('change', setEndTimeFromStart);
         document.getElementById('requestedDate').addEventListener('change', function() {
-            updateTimeConstraints();
-            setEndTimeFromStart();
-            validateDeliveryDate();
-            // Past date check for requested delivery date
+            updateTimeConstraints(); setEndTimeFromStart(); validateDeliveryDate();
             const infoEl = document.getElementById('delivery-date-info');
             if (this.value && this.value < getTodayStr()) {
                 infoEl.style.color = '#d32f2f';
-                infoEl.textContent = '❌ Requested delivery date is in the past. Please select today or a future date.';
+                infoEl.textContent = '❌ Requested delivery date must be today or a future date.';
             }
         });
         document.getElementById('facility').addEventListener('change', function() {
-            updateTimeConstraints();
-            setEndTimeFromStart();
+            updateTimeConstraints(); setEndTimeFromStart();
         });
         document.getElementById('portApptDate').addEventListener('change', validateDeliveryDate);
 
@@ -417,10 +610,8 @@
             const infoEl = document.getElementById('delivery-date-info');
             const portDate = document.getElementById('portApptDate').value;
             const reqDate = document.getElementById('requestedDate').value;
-            infoEl.textContent = '';
-            infoEl.style.color = '';
+            infoEl.textContent = ''; infoEl.style.color = '';
             if (!portDate || !reqDate) return;
-
             if (reqDate < portDate) {
                 infoEl.style.color = '#d32f2f';
                 infoEl.textContent = '❌ Requested delivery date is before the Port Appointment Date. Delivery cannot occur before port pickup.';
@@ -435,11 +626,7 @@
 
         async function submitAppointment(e) {
             e.preventDefault();
-            const errBanner = document.getElementById('error-banner');
-            const successBanner = document.getElementById('success-banner');
             const submitBtn = document.querySelector('.btn-submit');
-            errBanner.classList.remove('visible');
-            successBanner.classList.remove('visible');
 
             const facility = document.getElementById('facility').value;
             const container = document.getElementById('containerNumber').value.trim();
@@ -455,61 +642,42 @@
             const drayNotes = document.getElementById('drayNotes').value.trim();
 
             if (!facility || !container || !scac || !availableDate || !lastFreeDate || !requestedDate || !startTime || !endTime) {
-                errBanner.textContent = '❌ Please fill in all required fields.';
-                errBanner.classList.add('visible');
-                return;
+                showToast('Please fill in all required fields.', 'error'); return;
             }
 
-            // Block past dates
+            // Container format validation
+            if (!/^[A-Z]{4}\d{7}$/.test(container)) {
+                showToast('Container number must be 4 letters + 7 digits (e.g. CAIU4628234).', 'error'); return;
+            }
+
             const today = getTodayStr();
-            const pastDateFields = [
-                { val: availableDate, label: 'Container Available for Pickup' },
-                { val: portApptDate, label: 'Port Appointment Date' },
-                { val: lastFreeDate, label: 'Last Free Date' },
-                { val: requestedDate, label: 'Requested Delivery Date' }
-            ];
-            for (const f of pastDateFields) {
-                if (f.val && f.val < today) {
-                    errBanner.textContent = '❌ ' + f.label + ' is in the past. All dates must be today or later.';
-                    errBanner.classList.add('visible');
-                    return;
-                }
+            // Available for Pickup: allow up to 7 days in the past
+            if (availableDate && availableDate < getDateOffset(-7)) {
+                showToast('Container Available for Pickup cannot be more than 7 days in the past.', 'error'); return;
+            }
+            // Port Appointment Date: allow up to 3 days in the past
+            if (portApptDate && portApptDate < getDateOffset(-3)) {
+                showToast('Port Appointment Date cannot be more than 3 days in the past.', 'error'); return;
+            }
+            // Last Free Date: no strict past block (it's relative to available date)
+            // Requested Delivery Date: must be today or later
+            if (requestedDate < today) {
+                showToast('Requested Delivery Date must be today or a future date.', 'error'); return;
             }
 
             if (portApptDate && requestedDate < portApptDate) {
-                errBanner.textContent = '❌ Requested delivery date is before the Port Appointment Date. Delivery cannot occur before port pickup.';
-                errBanner.classList.add('visible');
-                return;
+                showToast('Requested delivery date is before the Port Appointment Date.', 'error'); return;
             }
 
             const hoursError = validateHours(facility, requestedDate, startTime, endTime);
-            if (hoursError) {
-                errBanner.textContent = '❌ ' + hoursError;
-                errBanner.classList.add('visible');
-                return;
-            }
+            if (hoursError) { showToast(hoursError, 'error'); return; }
 
             const appt = {
                 id: 'APT-' + Date.now().toString(36).toUpperCase(),
-                facility: facility,
-                containerNumber: container,
-                carrierScac: scac,
-                carrierName: carrierName,
-                driverName: driverName,
-                availableDate: availableDate,
-                portApptDate: portApptDate,
-                lastFreeDate: lastFreeDate,
-                requestedDate: requestedDate,
-                startTime: startTime,
-                endTime: endTime,
-                drayNotes: drayNotes,
-                status: 'Pending',
-                apexAlternativeDate: '',
-                altStartTime: '',
-                altEndTime: '',
-                apexComments: '',
-                submittedAt: new Date().toISOString(),
-                submittedBy: 'hsubrian@'
+                facility, containerNumber: container, carrierScac: scac, carrierName, driverName,
+                availableDate, portApptDate, lastFreeDate, requestedDate, startTime, endTime, drayNotes,
+                status: 'Pending', apexAlternativeDate: '', altStartTime: '', altEndTime: '',
+                apexComments: '', submittedAt: new Date().toISOString(), submittedBy: 'hsubrian@'
             };
 
             submitBtn.disabled = true;
@@ -522,11 +690,11 @@
                 document.getElementById('hours-info').textContent = '';
                 document.getElementById('endtime-info').textContent = '';
                 document.getElementById('delivery-date-info').textContent = '';
-                successBanner.classList.add('visible');
-                setTimeout(() => { successBanner.classList.remove('visible'); }, 4000);
+                document.getElementById('container-info').textContent = '';
+                showToast('✅ Appointment request submitted successfully. Apex will review shortly.', 'success');
+                updateProgress();
             } catch(err) {
-                errBanner.textContent = '❌ Failed to submit: ' + err.message;
-                errBanner.classList.add('visible');
+                showToast('Failed to submit: ' + err.message, 'error', 6000);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Appointment Request';
